@@ -1,0 +1,382 @@
+/* =======================
+   GAYA MESRA GURU OPR SEKOLAH
+   ======================= */
+
+/* Asas Layout */
+body {
+    background: #f7fafc;
+    color: #222;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.app-container {
+    max-width: 500px;
+    margin: 24px auto 0 auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 16px #0001;
+    padding: 18px 16px 40px 16px;
+}
+
+/* Tajuk & Header */
+header {
+    text-align: center;
+    margin-bottom: 18px;
+}
+header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 6px;
+    color: #146ebe;
+    letter-spacing: 0.5px;
+}
+.sokongan {
+    font-size: 1.03rem;
+    color: #3e6b99;
+    margin-bottom: 8px;
+}
+
+/* Dark Mode Button */
+#darkModeBtn {
+    background: #f6d050;
+    color: #222;
+    border: none;
+    border-radius: 13px;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin-top: 5px;
+    font-size: 1rem;
+    box-shadow: 0 2px 6px #0002;
+    transition: background 0.25s;
+}
+#darkModeBtn.active {
+    background: #222;
+    color: #f6d050;
+}
+
+/* Kad Borang & Senarai */
+.kad-borang, .kad-senarai {
+    background: #fafdff;
+    border-radius: 14px;
+    box-shadow: 0 1px 4px #0001;
+    padding: 16px 10px 8px 10px;
+    margin-bottom: 20px;
+}
+.kad-borang h2, .kad-senarai h2 {
+    margin-top: 0;
+    color: #146ebe;
+    font-size: 1.08rem;
+    margin-bottom: 10px;
+}
+
+/* Borang Input */
+form label {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 1rem;
+    color: #3d4852;
+}
+
+form input[type="text"],
+form input[type="date"],
+form textarea {
+    width: 100%;
+    padding: 9px 8px;
+    margin-top: 5px;
+    font-size: 1rem;
+    border: 1.5px solid #d6e5f2;
+    border-radius: 7px;
+    background: #f7fafc;
+    box-sizing: border-box;
+    outline: none;
+    transition: border 0.15s;
+}
+form input:focus, form textarea:focus {
+    border-color: #146ebe;
+    background: #eef5fc;
+}
+
+textarea {
+    min-height: 50px;
+    resize: vertical;
+}
+
+.input-suara {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+#rekodSuaraBtn {
+    background: #fae370;
+    color: #146ebe;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 1rem;
+    margin-right: 10px;
+    cursor: pointer;
+    box-shadow: 0 1px 5px #0002;
+}
+.rekod-status {
+    font-size: 0.95rem;
+    color: #cf5d11;
+    font-style: italic;
+}
+
+.grup-gambar {
+    display: flex;
+    gap: 9px;
+    margin-top: 5px;
+}
+.grup-gambar button {
+    background: #e7f5ff;
+    color: #222;
+    border: none;
+    border-radius: 7px;
+    padding: 7px 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 1px 4px #0001;
+    transition: background 0.2s;
+}
+.grup-gambar button:hover {
+    background: #bfe7f7;
+}
+
+/* Gambar Preview */
+.gambar-preview {
+    margin-top: 8px;
+    min-height: 40px;
+    text-align: center;
+}
+
+/* Butang utama */
+.btn-utama {
+    background: #146ebe;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 20px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 7px;
+    box-shadow: 0 2px 8px #146ebe23;
+    width: 100%;
+    transition: background 0.18s;
+}
+.btn-utama:hover {
+    background: #124d94;
+}
+
+.butang-grup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 18px;
+    justify-content: center;
+}
+.butang-grup button {
+    background: #f0f2fa;
+    color: #146ebe;
+    border: 1px solid #d2e1f8;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 1px 4px #0001;
+    transition: background 0.15s;
+}
+.butang-grup button:hover {
+    background: #e6f1ff;
+}
+
+#listOPR {
+    margin-top: 8px;
+}
+
+.opr-item {
+    background: #fff;
+    border-left: 6px solid #146ebe;
+    border-radius: 7px;
+    box-shadow: 0 1px 4px #0002;
+    margin-bottom: 13px;
+    padding: 12px 11px;
+    position: relative;
+}
+.opr-item .opr-tarikh {
+    font-size: 0.98rem;
+    color: #3b72a7;
+    font-weight: 500;
+}
+.opr-item .opr-tajuk {
+    font-weight: bold;
+    color: #146ebe;
+    margin-top: 2px;
+    font-size: 1.03rem;
+}
+.opr-item .opr-ringkasan {
+    color: #222;
+    margin-top: 5px;
+    margin-bottom: 6px;
+    white-space: pre-line;
+}
+.opr-item img {
+    max-width: 96%;
+    margin: 7px 0;
+    border-radius: 7px;
+    border: 1px solid #eee;
+}
+.opr-item .opr-guru {
+    font-size: 0.95rem;
+    color: #5b7d96;
+    margin-bottom: 2px;
+}
+.opr-item .opr-btn {
+    position: absolute;
+    top: 11px; right: 13px;
+    background: #fae370;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.98rem;
+    padding: 2px 9px;
+    cursor: pointer;
+}
+.opr-item .opr-btn:hover {
+    background: #f2c22b;
+}
+
+/* Popup Kamera */
+.kamera-popup {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000d;
+    z-index: 1002;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.kamera-popup video {
+    width: 96vw;
+    max-width: 350px;
+    border-radius: 13px;
+    margin-bottom: 16px;
+    border: 3px solid #fae370;
+}
+.kamera-popup button {
+    margin: 4px 0;
+    padding: 9px 20px;
+    font-size: 1rem;
+    background: #146ebe;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 1px 7px #0003;
+}
+.kamera-popup button:hover {
+    background: #124d94;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 12px 6px 16px 6px;
+    color: #7183a7;
+    font-size: 0.97rem;
+    background: none;
+}
+
+/* Pautan GitHub */
+footer a {
+    color: #146ebe;
+    text-decoration: none;
+}
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Mesra Telefon */
+@media (max-width: 700px) {
+    .app-container {
+        max-width: 100vw;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 9px 2vw 32px 2vw;
+    }
+    .kamera-popup video {
+        width: 99vw;
+        max-width: 100vw;
+    }
+}
+
+/* DARK MODE */
+body.dark,
+body.dark .app-container,
+body.dark .kad-borang,
+body.dark .kad-senarai {
+    background: #14151c !important;
+    color: #e6eaff !important;
+}
+body.dark input,
+body.dark textarea {
+    background: #232438 !important;
+    color: #e6eaff !important;
+    border-color: #323a59;
+}
+body.dark #darkModeBtn {
+    background: #232438;
+    color: #fae370;
+}
+body.dark .sokongan,
+body.dark .opr-guru {
+    color: #fae370 !important;
+}
+body.dark .kad-borang,
+body.dark .kad-senarai {
+    box-shadow: 0 1px 8px #0008;
+}
+body.dark .opr-item {
+    background: #22243b;
+    border-left: 6px solid #fae370;
+    color: #f6f6e1;
+}
+body.dark .opr-item .opr-tajuk {
+    color: #fae370;
+}
+body.dark .butang-grup button {
+    background: #232438;
+    color: #fae370;
+    border: 1px solid #454b68;
+}
+body.dark .butang-grup button:hover {
+    background: #33364a;
+}
+body.dark .btn-utama {
+    background: #fae370;
+    color: #232438;
+}
+body.dark .btn-utama:hover {
+    background: #ffe193;
+}
+body.dark .kamera-popup {
+    background: #232438e8;
+}
+body.dark .kamera-popup button {
+    background: #fae370;
+    color: #232438;
+}
+body.dark .kamera-popup button:hover {
+    background: #ffe193;
+}
+body.dark footer {
+    color: #fae370;
+}
+
+/* Sembunyikan fail import */
+#importFile {
+    display: none !important;
+}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPR Sekolah – Laporan Mesyuarat & Aktiviti (One Page)</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" class="app-container">
+
+    <header>
+        <h1>Laporan Sekolah Satu Muka (OPR)</h1>
+        <p class="sokongan">Aplikasi untuk semua guru, PK dan Guru Besar – isi laporan, ambil gambar, suara, cetak & simpan PDF. Boleh digunakan walaupun offline.</p>
+        <button id="darkModeBtn" aria-label="Tukar ke Dark Mode">🌙 Paparan Gelap</button>
+    </header>
+
+    <!-- Borang Laporan OPR -->
+    <section id="borangOPR" class="kad-borang">
+        <h2>Borang Laporan / Mesyuarat / Aktiviti Sekolah</h2>
+        <form id="oprForm" autocomplete="off">
+            <label>
+                Nama Program/Aktiviti:
+                <input type="text" id="namaProgram" required placeholder="Contoh: Mesyuarat Guru, Sukan Tahunan">
+            </label>
+            <label>
+                Tarikh & Masa:
+                <input type="datetime-local" id="tarikhMasa" required>
+            </label>
+            <label>
+                Tempat:
+                <input type="text" id="tempat" required placeholder="Contoh: Dewan Terbuka">
+            </label>
+            <label>
+                Sasaran:
+                <input type="text" id="sasaran" placeholder="Contoh: Semua Guru, Semua Murid Tahun 6">
+            </label>
+            <label>
+                Objektif:
+                <textarea id="objektif" rows="2" placeholder="Nyatakan objektif program/mesyuarat..."></textarea>
+            </label>
+            <label>
+                Butiran Aktiviti:
+                <textarea id="butiranAktiviti" rows="3" placeholder="Ulasan/aturcara utama..."></textarea>
+            </label>
+            <label>
+                Pencapaian:
+                <textarea id="pencapaian" rows="2"></textarea>
+            </label>
+            <label>
+                Kekuatan:
+                <textarea id="kekuatan" rows="2"></textarea>
+            </label>
+            <label>
+                Kelemahan:
+                <textarea id="kelemahan" rows="2"></textarea>
+            </label>
+            <label>
+                Cadangan Intervensi:
+                <textarea id="intervensi" rows="2"></textarea>
+            </label>
+            <label>
+                Impak Program:
+                <textarea id="impak" rows="2"></textarea>
+            </label>
+            <label>
+                Kos, Peralatan/Bahan:
+                <textarea id="kos" rows="1" placeholder="Contoh: RM300, P.A System, Kertas"></textarea>
+            </label>
+            <label>
+                Nama Penyedia:
+                <input type="text" id="penyedia" required placeholder="Nama Guru">
+            </label>
+            <label>
+                Nama Penyemak:
+                <input type="text" id="penyemak" placeholder="Nama Penolong Kanan / Guru Besar">
+            </label>
+            <label>
+                Nama Pengesah:
+                <input type="text" id="pengesah" placeholder="Nama Pengetua/Guru Besar">
+            </label>
+
+            <!-- Gambar Bukti -->
+            <label>
+                Gambar Bukti (pilihan):
+                <div class="grup-gambar">
+                    <button type="button" id="ambilGambarBtn">📷 Ambil Gambar</button>
+                    <button type="button" id="uploadGambarBtn">🖼️ Upload Gambar</button>
+                    <input type="file" id="gambarBukti" accept="image/*" capture="environment" style="display:none;">
+                    <button type="button" id="padamGambarBtn" style="display:none;">❌ Padam Gambar</button>
+                </div>
+                <span id="statusKamera" style="display:block;color:#c11;font-size:0.97em;"></span>
+            </label>
+            <div class="gambar-preview" id="gambarPreview"></div>
+
+            <!-- Suara ke Teks -->
+            <div class="input-suara">
+                <button type="button" id="rekodSuaraBtn" aria-label="Rekod Suara">🎤 Rekod Suara ke Teks</button>
+                <span id="statusRekod" class="rekod-status"></span>
+            </div>
+
+            <button type="submit" class="btn-utama">Simpan Laporan</button>
+        </form>
+    </section>
+
+    <!-- Senarai & Carian -->
+    <section id="senaraiLaporan" class="kad-senarai">
+        <h2>Senarai Laporan</h2>
+        <input type="search" id="carianInput" placeholder="Cari laporan / program / tempat...">
+        <div id="listOPR"></div>
+        <div class="butang-grup">
+            <button id="eksportBtn">Eksport Data (JSON)</button>
+            <button id="importBtn">Import Data</button>
+            <input type="file" id="importFile" accept=".json" style="display:none;">
+            <button id="cetakBtn">Cetak / Simpan PDF</button>
+            <button id="syncDownBtn">Sync Down Data Pusat</button>
+            <button id="syncUpBtn">Sync Up (Eksport Untuk Admin)</button>
+        </div>
+    </section>
+</div>
+
+<footer>
+    <p>Hak cipta &copy; 2025 | Aplikasi OPR Sekolah Mesra Guru | Versi 1.1</p>
+    <p><a href="https://github.com/cikgu-opr/opr-sekolah" target="_blank">Kod Sumber (GitHub)</a></p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
