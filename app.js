@@ -1,35 +1,37 @@
-// ====================
-// APP.JS OPR SEKOLAH
-// ====================
+// ==========================
+// APP.JS OPR SEKOLAH VERSI MINIMUM & STABIL
+// ==========================
 
-// Semua elemen utama borang & paparan
 const el = id => document.getElementById(id);
 
-const oprForm = el('oprForm');
-const carianInput = el('carianInput');
-const listOPR = el('listOPR');
+const simpanBtn      = el('simpanBtn');
+const importBtn      = el('importBtn');
+const downloadBtn    = el('downloadBtn');
+const cetakBtn       = el('cetakBtn');
+const darkModeBtn    = el('darkModeBtn');
+
+const oprForm        = el('oprForm');
+const carianInput    = el('carianInput');
+const listOPR        = el('listOPR');
+const filterBulan    = el('filterBulan');
+const filterGuru     = el('filterGuru');
 
 const ambilGambarBtn = el('ambilGambarBtn');
-const uploadGambarBtn = el('uploadGambarBtn');
-const gambarBuktiInput = el('gambarBukti');
-const gambarPreview = el('gambarPreview');
+const uploadGambarBtn= el('uploadGambarBtn');
+const gambarBuktiInput= el('gambarBukti');
+const gambarPreview  = el('gambarPreview');
 const padamGambarBtn = el('padamGambarBtn');
-const statusKamera = el('statusKamera');
+const statusKamera   = el('statusKamera');
 
-const rekodSuaraBtn = el('rekodSuaraBtn');
-const statusRekod = el('statusRekod');
+const rekodSuaraBtn  = el('rekodSuaraBtn');
+const statusRekod    = el('statusRekod');
+const importFile     = el('importFile');
 
-const eksportBtn = el('eksportBtn');
-const importBtn = el('importBtn');
-const importFile = el('importFile');
-const cetakBtn = el('cetakBtn');
-const darkModeBtn = el('darkModeBtn');
-const syncDownBtn = document.getElementById('syncDownBtn');
-const syncUpBtn = document.getElementById('syncUpBtn');
+// =============== DATA ===============
+let dataOPR = [];
+let gambarBuktiBase64 = []; // max 3 gambar
 
-let gambarBase64 = null, dataOPR = [];
-
-// ====== Cek Kamera & Mikrofon ======
+// =============== Kamera & Mikrofon ===============
 let kameraSedia = false, mikrofonSedia = false;
 
 function periksaKamera() {
@@ -59,17 +61,22 @@ function periksaMikrofon() {
     }
 }
 
-// ====== INIT & LOAD ======
+// =============== INIT ===============
 window.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('dataOPR')) {
-        try { dataOPR = JSON.parse(localStorage.getItem('dataOPR')) || []; } catch { dataOPR = []; }
-    }
+    try {
+        if (localStorage.getItem('dataOPR')) {
+            dataOPR = JSON.parse(localStorage.getItem('dataOPR')) || [];
+        }
+    } catch { dataOPR = []; }
     paparkanSenaraiOPR();
     periksaKamera(); periksaMikrofon();
     if (localStorage.getItem('darkMode') === 'true') aktifkanDarkMode(true);
 });
 
-// ====== Gambar: Kamera & Upload ======
+// =============== GAMBAR: Auto Resize/Compress (max 3) ===============
+const HAD_SAIZ = 350 * 1024; // 350KB maksimum
+const MAKS_GAMBAR = 3;
+
 ambilGambarBtn.addEventListener('click', () => {
     if (!kameraSedia) { statusKamera.textContent = "Kamera tiada atau tidak boleh diakses."; return; }
     bukaKameraDanAmbilGambar();
@@ -78,15 +85,16 @@ uploadGambarBtn.addEventListener('click', () => {
     gambarBuktiInput.click();
 });
 gambarBuktiInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = evt => {
-            gambarBase64 = evt.target.result;
-            paparkanPreviewGambar(gambarBase64);
-        };
-        reader.readAsDataURL(file);
-    }
+    const files = e.target.files;
+    if (!files.length) return;
+    [...files].forEach(file => {
+        if (gambarBuktiBase64.length >= MAKS_GAMBAR) return;
+        resizeImageFile(file, (base64) => {
+            gambarBuktiBase64.push(base64);
+            paparkanPreviewGambar();
+        });
+    });
+    gambarBuktiInput.value = '';
 });
 function bukaKameraDanAmbilGambar() {
     const kameraPopup = document.createElement('div');
@@ -109,11 +117,19 @@ function bukaKameraDanAmbilGambar() {
             document.body.removeChild(kameraPopup);
         });
     snapBtn.addEventListener('click', () => {
+        if (gambarBuktiBase64.length >= MAKS_GAMBAR) {
+            alert("Hanya maksimum 3 gambar sahaja.");
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            document.body.removeChild(kameraPopup);
+            return;
+        }
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        gambarBase64 = canvas.toDataURL('image/jpeg', 0.85);
-        paparkanPreviewGambar(gambarBase64);
+        resizeImageCanvas(canvas, (base64) => {
+            gambarBuktiBase64.push(base64);
+            paparkanPreviewGambar();
+        });
         if (stream) stream.getTracks().forEach(track => track.stop());
         document.body.removeChild(kameraPopup);
     });
@@ -122,18 +138,65 @@ function bukaKameraDanAmbilGambar() {
         document.body.removeChild(kameraPopup);
     });
 }
-function paparkanPreviewGambar(base64) {
-    gambarPreview.innerHTML = `<img src="${base64}" alt="Gambar Bukti" style="max-width:100%;border-radius:10px;margin-top:5px;">`;
-    padamGambarBtn.style.display = 'inline-block';
+function paparkanPreviewGambar() {
+    gambarPreview.innerHTML = gambarBuktiBase64.map((src,i) =>
+        `<div style="display:inline-block;position:relative;margin:2px;">
+            <img src="${src}" style="max-width:85px;max-height:85px;border-radius:8px;">
+            <button style="position:absolute;top:2px;right:2px;" onclick="padamGambar(${i})" type="button">❌</button>
+        </div>`
+    ).join('');
+    padamGambarBtn.style.display = gambarBuktiBase64.length ? 'inline-block' : 'none';
+}
+window.padamGambar = function(idx) {
+    gambarBuktiBase64.splice(idx,1);
+    paparkanPreviewGambar();
 }
 padamGambarBtn.addEventListener('click', () => {
-    gambarPreview.innerHTML = '';
-    gambarBase64 = null;
-    padamGambarBtn.style.display = 'none';
-    gambarBuktiInput.value = '';
+    gambarBuktiBase64 = [];
+    paparkanPreviewGambar();
 });
 
-// ====== Suara ke Teks ======
+// --- FUNGSI RESIZE & COMPRESS UTAMA ---
+function resizeImageFile(file, callback) {
+    const reader = new FileReader();
+    reader.onload = evt => {
+        const img = new window.Image();
+        img.onload = function () {
+            resizeImageCanvas(imgToCanvas(img), callback);
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+function imgToCanvas(img) {
+    // Saiz maksimum lebar/tinggi
+    const MAX_W = 900, MAX_H = 900;
+    let w = img.width, h = img.height;
+    if (w > MAX_W || h > MAX_H) {
+        const scale = Math.min(MAX_W/w, MAX_H/h);
+        w = Math.round(w * scale); h = Math.round(h * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    return canvas;
+}
+function resizeImageCanvas(canvas, callback) {
+    let quality = 0.85;
+    let base64 = canvas.toDataURL('image/jpeg', quality);
+    function tryCompress() {
+        if (base64.length/1.37 > HAD_SAIZ && quality > 0.5) {
+            quality -= 0.05;
+            base64 = canvas.toDataURL('image/jpeg', quality);
+            setTimeout(tryCompress, 0);
+        } else {
+            callback(base64);
+        }
+    }
+    tryCompress();
+}
+
+// =============== SUARA ke TEKS ===============
 rekodSuaraBtn.addEventListener('click', () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition || !mikrofonSedia) {
@@ -163,13 +226,14 @@ rekodSuaraBtn.addEventListener('click', () => {
     };
 });
 
-// ====== Simpan Laporan ======
-oprForm.addEventListener('submit', function(e){
-    e.preventDefault();
+// =============== SIMPAN, AUTO EXPORT, IMPORT, DOWNLOAD ===============
+simpanBtn.addEventListener('click', function(){
     const data = {
         namaProgram: el('namaProgram').value.trim(),
         tarikhMasa: el('tarikhMasa').value,
         tempat: el('tempat').value.trim(),
+        anjuran: el('anjuran').value.trim(),
+        penaja: el('penaja').value.trim(),
         sasaran: el('sasaran').value.trim(),
         objektif: el('objektif').value.trim(),
         butiranAktiviti: el('butiranAktiviti').value.trim(),
@@ -182,69 +246,135 @@ oprForm.addEventListener('submit', function(e){
         penyedia: el('penyedia').value.trim(),
         penyemak: el('penyemak').value.trim(),
         pengesah: el('pengesah').value.trim(),
-        gambar: gambarBase64,
+        gambar: gambarBuktiBase64.slice(0),
         id: Date.now()
     };
     dataOPR.unshift(data);
     simpanDataLocal();
     paparkanSenaraiOPR();
     oprForm.reset();
-    gambarPreview.innerHTML = '';
-    gambarBase64 = null;
+    gambarBuktiBase64 = [];
+    paparkanPreviewGambar();
     padamGambarBtn.style.display = 'none';
-    alert('Laporan berjaya disimpan! Terima kasih cikgu.');
+    autoEksportJSON();
+    alert('Laporan berjaya disimpan, dieksport dan disimpan tempatan!');
 });
-
-// Simpan ke localStorage
 function simpanDataLocal() {
     localStorage.setItem('dataOPR', JSON.stringify(dataOPR));
 }
+function autoEksportJSON() {
+    const blob = new Blob([JSON.stringify(dataOPR, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = "opr_data.json";
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+downloadBtn.addEventListener('click', autoEksportJSON);
 
-// ====== Paparan, Carian, Cetak ======
+importBtn.addEventListener('click', () => { importFile.click(); });
+importFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        try {
+            const dataBaru = JSON.parse(evt.target.result);
+            if (Array.isArray(dataBaru)) {
+                const idSet = new Set(dataOPR.map(x=>x.id));
+                let countBaru = 0;
+                dataBaru.forEach(item => { if(!idSet.has(item.id)) { dataOPR.push(item); countBaru++; } });
+                simpanDataLocal(); paparkanSenaraiOPR();
+                alert('Data berjaya digabung!\nLaporan baru dimasukkan: ' + countBaru + '\nJumlah laporan terkini: ' + dataOPR.length);
+            } else throw new Error();
+        } catch {
+            alert("Fail tidak sah. Pilih fail eksport OPR (.json) sahaja.");
+        }
+    };
+    reader.readAsText(file);
+    importFile.value = '';
+});
+
+// =============== CETAK / PDF ===============
+cetakBtn.addEventListener('click', () => {
+    window.print();
+});
+
+// =============== DARK MODE ===============
+darkModeBtn.addEventListener('click', () => {
+    aktifkanDarkMode();
+});
+function aktifkanDarkMode(force) {
+    const isDark = force !== undefined ? force : !document.body.classList.contains('dark');
+    if (isDark) {
+        document.body.classList.add('dark'); darkModeBtn.classList.add('active');
+    } else {
+        document.body.classList.remove('dark'); darkModeBtn.classList.remove('active');
+    }
+    localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+}
+
+// =============== Paparan, Carian, Filter, Preview Senarai ===============
 function paparkanSenaraiOPR() {
     let list = dataOPR;
     const q = (carianInput.value || "").toLowerCase();
+
     if (q) {
         list = list.filter(item =>
             Object.values(item).join(" ").toLowerCase().includes(q)
         );
     }
+    // Filter bulan
+    if (filterBulan && filterBulan.value) {
+        list = list.filter(item => {
+            const bulan = (item.tarikhMasa || "").slice(5, 7);
+            return bulan === filterBulan.value;
+        });
+    }
+    // Filter guru
+    if (filterGuru && filterGuru.value) {
+        list = list.filter(item => item.penyedia === filterGuru.value);
+    }
+
+    // Update dropdown guru ikut senarai
+    const semuaGuru = [...new Set(dataOPR.map(item => item.penyedia).filter(Boolean))].sort();
+    filterGuru.innerHTML = '<option value="">Semua Guru</option>' +
+        semuaGuru.map(guru => `<option value="${escapeHTML(guru)}">${escapeHTML(guru)}</option>`).join('');
+    filterGuru.value = filterGuru.value || '';
+
     if (list.length === 0) {
         listOPR.innerHTML = "<p>Tiada laporan ditemui.</p>";
         return;
     }
+
     listOPR.innerHTML = list.map(item => `
-    <div class="opr-item">
-        <span class="opr-tarikh">${formatTarikh(item.tarikhMasa)}</span>
-        <div class="opr-tajuk">${escapeHTML(item.namaProgram)}</div>
-        <div class="opr-guru">Tempat: ${escapeHTML(item.tempat)}${item.sasaran ? " | Sasaran: " + escapeHTML(item.sasaran) : ""}</div>
-        <div class="opr-ringkasan">
-            <b>Objektif:</b> ${escapeHTML(item.objektif)}<br>
-            <b>Butiran:</b> ${escapeHTML(item.butiranAktiviti)}<br>
-            <b>Pencapaian:</b> ${escapeHTML(item.pencapaian)}<br>
-            <b>Kekuatan:</b> ${escapeHTML(item.kekuatan)}<br>
-            <b>Kelemahan:</b> ${escapeHTML(item.kelemahan)}<br>
-            <b>Cadangan Intervensi:</b> ${escapeHTML(item.intervensi)}<br>
-            <b>Impak:</b> ${escapeHTML(item.impak)}<br>
-            <b>Kos/Peralatan:</b> ${escapeHTML(item.kos)}
+        <div class="opr-item">
+            <span class="opr-tarikh">${formatTarikh(item.tarikhMasa)}</span>
+            <div class="opr-tajuk">${escapeHTML(item.namaProgram)}</div>
+            <div class="opr-guru">Tempat: ${escapeHTML(item.tempat)}${item.sasaran ? " | Sasaran: " + escapeHTML(item.sasaran) : ""}</div>
+            <div class="opr-ringkasan">
+                <b>Objektif:</b> ${escapeHTML(item.objektif)}<br>
+                <b>Butiran:</b> ${escapeHTML(item.butiranAktiviti)}<br>
+                <b>Pencapaian:</b> ${escapeHTML(item.pencapaian)}<br>
+                <b>Kekuatan:</b> ${escapeHTML(item.kekuatan)}<br>
+                <b>Kelemahan:</b> ${escapeHTML(item.kelemahan)}<br>
+                <b>Cadangan Intervensi:</b> ${escapeHTML(item.intervensi)}<br>
+                <b>Impak:</b> ${escapeHTML(item.impak)}<br>
+                <b>Kos/Peralatan:</b> ${escapeHTML(item.kos)}<br>
+                ${item.penaja ? `<div><b>Penaja:</b> ${escapeHTML(item.penaja)}</div>` : ""}
+                ${item.anjuran ? `<div><b>Anjuran:</b> ${escapeHTML(item.anjuran)}</div>` : ""}
+            </div>
+            ${(Array.isArray(item.gambar) && item.gambar.length) ? item.gambar.map(gm=>`<img src="${gm}" alt="Gambar Bukti" style="max-width:100px;margin:2px;border-radius:8px;">`).join('') : ''}
+            <div class="opr-guru">
+                <i>Penyedia: ${escapeHTML(item.penyedia)}${item.penyemak ? ", Penyemak: " + escapeHTML(item.penyemak) : ""}${item.pengesah ? ", Pengesah: " + escapeHTML(item.pengesah) : ""}</i>
+            </div>
         </div>
-        ${item.gambar ? `<img src="${item.gambar}" alt="Gambar Bukti">` : ''}
-        <div class="opr-guru">
-            <i>Penyedia: ${escapeHTML(item.penyedia)}${item.penyemak ? ", Penyemak: " + escapeHTML(item.penyemak) : ""}${item.pengesah ? ", Pengesah: " + escapeHTML(item.pengesah) : ""}</i>
-        </div>
-        <button class="opr-btn" onclick="padamLaporan(${item.id})">Padam</button>
-    </div>
     `).join('');
 }
-window.padamLaporan = function(id) {
-    if (confirm('Padam laporan ini?')) {
-        dataOPR = dataOPR.filter(item => item.id !== id);
-        simpanDataLocal(); paparkanSenaraiOPR();
-    }
-};
 carianInput.addEventListener('input', paparkanSenaraiOPR);
+filterBulan.addEventListener('change', paparkanSenaraiOPR);
+filterGuru.addEventListener('change', paparkanSenaraiOPR);
 
-// Format tarikh gaya Malaysia
 function formatTarikh(t) {
     if (!t) return '-';
     try {
@@ -260,82 +390,3 @@ function escapeHTML(text) {
         '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
     }[m]));
 }
-
-// ====== Eksport / Import Data ======
-eksportBtn.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(dataOPR, null, 2)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = "opr_sekolah.json";
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
-});
-importBtn.addEventListener('click', () => { importFile.click(); });
-importFile.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-        try {
-            const dataBaru = JSON.parse(evt.target.result);
-            if (Array.isArray(dataBaru)) {
-                if (confirm("Gabung dengan data sedia ada? (OK = gabung, Batal = ganti semua)")) {
-                    const idSet = new Set(dataOPR.map(x=>x.id));
-                    dataBaru.forEach(item => { if(!idSet.has(item.id)) dataOPR.push(item); });
-                } else {
-                    dataOPR = dataBaru;
-                }
-                simpanDataLocal(); paparkanSenaraiOPR();
-                alert('Data berjaya diimport!');
-            } else throw new Error();
-        } catch {
-            alert("Fail tidak sah. Pilih fail eksport OPR (.json) sahaja.");
-        }
-    };
-    reader.readAsText(file);
-    importFile.value = '';
-});
-
-// ====== Cetak/Simpan PDF (One Page) ======
-cetakBtn.addEventListener('click', () => {
-    window.print();
-});
-
-// ====== Dark Mode ======
-darkModeBtn.addEventListener('click', () => {
-    aktifkanDarkMode();
-});
-function aktifkanDarkMode(force) {
-    const isDark = force !== undefined ? force : !document.body.classList.contains('dark');
-    if (isDark) {
-        document.body.classList.add('dark'); darkModeBtn.classList.add('active');
-    } else {
-        document.body.classList.remove('dark'); darkModeBtn.classList.remove('active');
-    }
-    localStorage.setItem('darkMode', isDark ? 'true' : 'false');
-}
-
-
-// SYNC DOWN: Muat turun data pusat dari repo GitHub cikgu
-syncDownBtn.addEventListener('click', () => {
-    const url = "https://raw.githubusercontent.com/farimi2025/myopr/main/opr_data.json";
-    fetch(url).then(res => {
-        if (!res.ok) throw new Error('Network response not ok');
-        return res.json();
-    }).then(json => {
-        if (confirm("Data pusat akan dimasukkan/gabung ke dalam senarai OPR cikgu. Teruskan?")) {
-            const idSet = new Set(dataOPR.map(x => x.id));
-            json.forEach(item => { if (!idSet.has(item.id)) dataOPR.push(item); });
-            simpanDataLocal(); paparkanSenaraiOPR();
-            alert('Data pusat berjaya diselaraskan.');
-        }
-    }).catch(() => {
-        alert('Tidak dapat akses data pusat. Pastikan URL/fail betul atau internet ok.');
-    });
-});
-
-// SYNC UP: Eksport untuk admin (fail .json untuk upload ke GitHub secara manual)
-syncUpBtn.addEventListener('click', () => {
-    alert("Untuk sync up, cikgu eksport data dahulu, kemudian admin upload ke GitHub (fail opr_data.json).");
-    eksportBtn.click();
-});
