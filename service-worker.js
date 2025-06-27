@@ -2,7 +2,7 @@
 // SERVICE WORKER: OPR SEKOLAH
 // ==============================
 
-const CACHE_NAME = 'opr-sekolah-v2';
+const CACHE_NAME = 'opr-sekolah-v3';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -11,19 +11,19 @@ const FILES_TO_CACHE = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
-  // Tambah lagi fail jika perlu
+  // Tambah lagi fail jika ada fail baru
 ];
 
-// Install SW & cache semua fail
+// Install: Cache semua fail utama
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(FILES_TO_CACHE))
-      .then(self.skipWaiting())
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate SW & buang cache lama
+// Activate: Buang cache lama
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keyList =>
@@ -37,27 +37,26 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Intercept fetch (offline first)
+// Fetch: Offline first (cache dulu, baru network)
 self.addEventListener('fetch', event => {
-  // Hanya cache GET
   if (event.request.method !== 'GET') return;
-
   event.respondWith(
     caches.match(event.request)
-      .then(response => response || fetch(event.request)
-        .then(res => {
-          // Simpan salinan baru ke cache
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, res.clone());
-            return res;
+      .then(response => {
+        if (response) return response;
+        return fetch(event.request)
+          .then(res => {
+            // Simpan salinan baru ke cache
+            return caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, res.clone());
+              return res;
+            });
+          })
+          .catch(() => {
+            // Jika offline dan tiada cache, fallback ke root
+            if (event.request.destination === 'document')
+              return caches.match('./');
           });
-        })
-        .catch(() => {
-          // Jika offline dan tiada cache, fallback ke root
-          if (event.request.destination === 'document') {
-            return caches.match('./');
-          }
-        })
-      )
+      })
   );
 });
