@@ -164,7 +164,7 @@ ambilGambarBtn && (ambilGambarBtn.onclick = async function() {
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth; canvas.height = video.videoHeight;
       canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-      compressImage(canvas.toDataURL('image/jpeg', 0.83), (base64) => {
+      compressImageTo80KB(canvas.toDataURL('image/jpeg', 0.83), (base64) => {
         gambarArr.push(base64);
         paparkanPreviewGambar();
       });
@@ -189,7 +189,8 @@ gambarBuktiInput && (gambarBuktiInput.onchange = function(e) {
     files = files.slice(0, 3 - gambarArr.length);
   }
   files.forEach(file => {
-    compressImage(file, (base64) => {
+    // Pastikan guna fungsi compressImageTo80KB, bukan compressImage
+    compressImageTo80KB(file, (base64) => {
       if (gambarArr.length < 3) {
         gambarArr.push(base64);
         paparkanPreviewGambar();
@@ -198,6 +199,7 @@ gambarBuktiInput && (gambarBuktiInput.onchange = function(e) {
   });
   gambarBuktiInput.value = '';
 });
+
 
 function paparkanPreviewGambar() {
   if (gambarPreview) {
