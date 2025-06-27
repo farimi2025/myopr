@@ -12,10 +12,12 @@ const GITHUB_FILE = "opr_data.json";
 // -- UTILITI --
 const el = id => document.getElementById(id);
 
-function compressImage(fileOrBase64, cb) {
+// Compress gambar supaya <80KB, lebar maks 320px
+function compressImageTo80KB(fileOrBase64, cb) {
   const img = new Image();
   img.onload = function() {
-    const MAX_W = 480, MAX_H = 360;
+    // Set lebar maksimum 320px, tinggi 240px
+    const MAX_W = 320, MAX_H = 240;
     let w = img.width, h = img.height;
     if (w > MAX_W || h > MAX_H) {
       const scale = Math.min(MAX_W / w, MAX_H / h);
@@ -25,7 +27,23 @@ function compressImage(fileOrBase64, cb) {
     const canvas = document.createElement('canvas');
     canvas.width = w; canvas.height = h;
     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-    cb(canvas.toDataURL('image/jpeg', 0.65));
+
+    // Cuba compress beberapa kali untuk <80KB
+    let quality = 0.6;
+    let base64, blob;
+    function tryCompress() {
+      base64 = canvas.toDataURL('image/jpeg', quality);
+      // Tukar base64 ke Blob untuk kira saiz
+      fetch(base64).then(res => res.blob()).then(b => {
+        if (b.size > 80000 && quality > 0.2) {
+          quality -= 0.08; // Kurangkan kualiti, ulang
+          tryCompress();
+        } else {
+          cb(base64);
+        }
+      });
+    }
+    tryCompress();
   };
   if (typeof fileOrBase64 === "string") {
     img.src = fileOrBase64;
@@ -35,6 +53,7 @@ function compressImage(fileOrBase64, cb) {
     reader.readAsDataURL(fileOrBase64);
   }
 }
+
 
 function escapeHTML(text) {
   if (!text) return "";
