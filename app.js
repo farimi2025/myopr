@@ -322,7 +322,8 @@ importFile && (importFile.onchange = function(e) {
 
 // -- SENARAI SEMUA LAPORAN --
 function paparkanSenaraiOPR() {
-  let list = dataOPR.filter(x=>x.guruPelapor===guruAktif);
+  let list = dataOPR;
+
   const listOPR = el('listOPR');
   if (!list.length) { listOPR.innerHTML = "<p>Tiada laporan disimpan.</p>"; return; }
   listOPR.innerHTML = list.map(item => `
