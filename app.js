@@ -1,14 +1,17 @@
 // ==========================
-// APP.JS OPR SEKOLAH VERSI MESRA GURU & STABIL
+// app.js - Kod Utama Web App PWA OPR Sekolah
 // ==========================
 
-// ======= Pilihan DOM =======
+// Dapatkan elemen DOM dengan mudah
 const el = id => document.getElementById(id);
 
+// --- Elemen utama ---
 const simpanBtn = el('simpanBtn');
 const downloadBtn = el('downloadBtn');
 const cetakBtn = el('cetakBtn');
 const downloadPdfBtn = el('downloadPdfBtn');
+const downloadDocxBtn = el('downloadDocxBtn');
+const syncGithubBtn = el('syncGithubBtn');
 const darkModeBtn = el('darkModeBtn');
 
 const oprForm = el('oprForm');
@@ -38,20 +41,20 @@ const guruPelaporInput = el('guruPelapor');
 const guruPenyemakInput = el('guruPenyemak');
 const guruPengesahInput = el('guruPengesah');
 
-// ======= Data =======
+// --- Data simpanan ---
 let dataOPR = [];
-let gambarBuktiBase64 = []; // Simpan gambar dalam base64, max 3
+let gambarBuktiBase64 = [];
 
 let dataSekolahGuru = {
   namaSekolah: '',
   alamatSekolah: '',
-  logoSekolahBase64: '', // base64 image
+  logoSekolahBase64: '',
   guruPelapor: '',
   guruPenyemak: '',
   guruPengesah: ''
 };
 
-// ======= Fungsi Utility =======
+// --- Utility fungsi ---
 function escapeHTML(text) {
   if (!text) return '';
   return text.replace(/[&<>"']/g, m => ({
@@ -68,7 +71,7 @@ function formatTarikh(t) {
   } catch { return t; }
 }
 
-// ======= Load & Simpan Data Sekolah & Guru =======
+// --- Load & Simpan data sekolah/guru ---
 function loadDataSekolahGuru() {
   try {
     const s = localStorage.getItem('dataSekolahGuru');
@@ -78,7 +81,6 @@ function loadDataSekolahGuru() {
 function simpanDataSekolahGuru() {
   localStorage.setItem('dataSekolahGuru', JSON.stringify(dataSekolahGuru));
 }
-// Isi form modal maklumat sekolah dengan data tersimpan
 function isiFormSekolahGuru() {
   namaSekolahInput.value = dataSekolahGuru.namaSekolah || '';
   alamatSekolahInput.value = dataSekolahGuru.alamatSekolah || '';
@@ -92,7 +94,7 @@ function isiFormSekolahGuru() {
   }
 }
 
-// ======= Load & Simpan Data Laporan OPR =======
+// --- Load & Simpan data OPR ---
 function loadDataOPR() {
   try {
     const d = localStorage.getItem('dataOPR');
@@ -103,33 +105,26 @@ function simpanDataOPR() {
   localStorage.setItem('dataOPR', JSON.stringify(dataOPR));
 }
 
-// ======= Papar Senarai Laporan =======
+// --- Papar senarai laporan ---
 function paparkanSenaraiOPR() {
-  let list = dataOPR.slice(); // clone array
+  let list = dataOPR.slice();
   const q = (carianInput.value || '').toLowerCase();
 
-  // Cari berdasarkan apa sahaja text dalam laporan
   if (q) {
     list = list.filter(item =>
       Object.values(item).join(' ').toLowerCase().includes(q)
     );
   }
-  // Filter bulan
   if (filterBulan.value) {
-    list = list.filter(item => {
-      const bulan = (item.tarikhMasa || '').slice(5, 7);
-      return bulan === filterBulan.value;
-    });
+    list = list.filter(item => (item.tarikhMasa || '').slice(5, 7) === filterBulan.value);
   }
-  // Filter guru pelapor
   if (filterGuru.value) {
     list = list.filter(item => item.penyedia === filterGuru.value);
   }
 
-  // Update dropdown guru pelapor ikut data terkini
   const semuaGuru = [...new Set(dataOPR.map(x => x.penyedia).filter(Boolean))].sort();
   filterGuru.innerHTML = '<option value="">Semua Guru</option>' +
-    semuaGuru.map(guru => `<option value="${escapeHTML(guru)}">${escapeHTML(guru)}</option>`).join('');
+    semuaGuru.map(g => `<option value="${escapeHTML(g)}">${escapeHTML(g)}</option>`).join('');
   filterGuru.value = filterGuru.value || '';
 
   if (list.length === 0) {
@@ -154,7 +149,7 @@ function paparkanSenaraiOPR() {
         ${item.penaja ? `<div><b>Penaja:</b> ${escapeHTML(item.penaja)}</div>` : ''}
         ${item.anjuran ? `<div><b>Anjuran:</b> ${escapeHTML(item.anjuran)}</div>` : ''}
       </div>
-      ${(Array.isArray(item.gambar) && item.gambar.length) ? item.gambar.map((gm,i) => `
+      ${(Array.isArray(item.gambar) && item.gambar.length) ? item.gambar.map((gm, i) => `
         <img src="${gm}" alt="Gambar Bukti" style="max-width:85px; max-height:85px; border-radius:8px; margin:2px; cursor:pointer;" onclick="bukaImejTabBaru('${encodeURIComponent(gm)}')" title="Klik untuk buka imej penuh">
       `).join('') : ''}
       <div class="opr-guru" style="margin-top:8px;">
@@ -164,7 +159,7 @@ function paparkanSenaraiOPR() {
   `).join('');
 }
 
-// ======= Buka Imej dalam Tab Baru =======
+// --- Buka imej penuh dalam tab baru ---
 window.bukaImejTabBaru = function(base64StrEncoded) {
   const base64Str = decodeURIComponent(base64StrEncoded);
   const w = window.open('');
@@ -174,7 +169,7 @@ window.bukaImejTabBaru = function(base64StrEncoded) {
   w.document.title = 'Imej Bukti';
 }
 
-// ======= Fungsi Ambil & Upload Gambar =======
+// --- Kamera & upload gambar ---
 let kameraSedia = false;
 
 function periksaKamera() {
@@ -230,8 +225,8 @@ function paparkanPreviewGambar() {
   padamGambarBtn.style.display = gambarBuktiBase64.length ? 'inline-block' : 'none';
 }
 
-// Fungsi resize dan compress gambar (max 900px lebar/tinggi)
-const MAX_W = 900, MAX_H = 900, MAX_SIZE = 350 * 1024; // 350KB max
+// --- Resize dan compress gambar ---
+const MAX_W = 900, MAX_H = 900, MAX_SIZE = 350 * 1024;
 function resizeImageFile(file, callback) {
   const reader = new FileReader();
   reader.onload = evt => {
@@ -267,7 +262,7 @@ function resizeImageFile(file, callback) {
   reader.readAsDataURL(file);
 }
 
-// Fungsi buka kamera & ambil gambar
+// --- Fungsi buka kamera dan ambil gambar ---
 function bukaKameraDanAmbilGambar() {
   const kameraPopup = document.createElement('div');
   kameraPopup.className = 'kamera-popup';
@@ -340,15 +335,13 @@ function resizeImageCanvas(canvas, callback) {
   tryCompress();
 }
 
-// ======= Simpan Laporan =======
+// --- Simpan laporan ---
 simpanBtn.addEventListener('click', () => {
-  // Validasi borang asas
   if (!oprForm.checkValidity()) {
     alert('Sila lengkapkan semua maklumat wajib sebelum simpan.');
     return;
   }
 
-  // Dapatkan data borang
   const data = {
     namaProgram: el('namaProgram').value.trim(),
     tarikhMasa: el('tarikhMasa').value,
@@ -371,7 +364,6 @@ simpanBtn.addEventListener('click', () => {
     id: Date.now()
   };
 
-  // Masukkan data ke depan array
   dataOPR.unshift(data);
   simpanDataOPR();
   paparkanSenaraiOPR();
@@ -384,7 +376,7 @@ simpanBtn.addEventListener('click', () => {
   alert('Laporan berjaya disimpan!');
 });
 
-// ======= Download Semua Data JSON =======
+// --- Download semua data JSON ---
 downloadBtn.addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(dataOPR, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -399,144 +391,44 @@ downloadBtn.addEventListener('click', () => {
   }, 100);
 });
 
-// ======= Cetak Preview =======
+// --- Cetak preview ---
 cetakBtn.addEventListener('click', () => {
   window.print();
 });
 
-// ======= Download Laporan Ini (PDF) =======
-// Memerlukan jsPDF - sediakan script link CDN dalam index.html
-// <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+// --- Export PDF ---
 downloadPdfBtn.addEventListener('click', () => {
   if (dataOPR.length === 0) {
     alert('Tiada laporan untuk dijana PDF.');
     return;
   }
-  const data = dataOPR[0]; // Ambil laporan terbaru untuk contoh (boleh ubah ikut pilihan)
-  janaPDF(data);
+  // Panggil fungsi generatePDF dari pdf-generator.js
+  generatePDF(dataOPR[0]);
 });
 
-// ======= Fungsi Jana PDF =======
-async function janaPDF(data) {
-  // muat library jsPDF
-  if (!window.jspdf) {
-    alert('Sila tambah pustaka jsPDF dalam index.html untuk fungsi PDF.');
+// --- Export DOCX ---
+downloadDocxBtn.addEventListener('click', () => {
+  if (dataOPR.length === 0) {
+    alert('Tiada laporan untuk dijana DOCX.');
     return;
   }
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({
-    unit: 'pt',
-    format: 'a4',
-    compress: true
-  });
+  // Panggil fungsi generateDOCX dari docx-generator.js
+  generateDOCX(dataOPR[0]);
+});
 
-  const margin = 40;
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-
-  // Fungsi tambah teks
-  function tambahTeks(text, x, y, options = {}) {
-    pdf.setFontSize(options.size || 12);
-    pdf.setFont('helvetica', options.style || 'normal');
-    pdf.text(text, x, y, { maxWidth: pageWidth - margin * 2 });
+// --- Sync GitHub ---
+syncGithubBtn.addEventListener('click', async () => {
+  try {
+    await syncWithGitHub();
+    alert('Sinkronisasi dengan GitHub berjaya!');
+    loadDataOPR();
+    paparkanSenaraiOPR();
+  } catch (err) {
+    alert('Sinkronisasi gagal: ' + err.message);
   }
+});
 
-  // Tambah letterhead & logo sekolah jika ada
-  if (dataSekolahGuru.logoSekolahBase64) {
-    try {
-      pdf.addImage(dataSekolahGuru.logoSekolahBase64, 'PNG', margin, margin, 80, 80);
-    } catch { /* Ignore error if invalid image */ }
-  }
-  if (dataSekolahGuru.namaSekolah) {
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(dataSekolahGuru.namaSekolah, margin + 90, margin + 40);
-  }
-
-  let y = margin + 100;
-
-  // Info Laporan
-  pdf.setFontSize(14);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('Laporan Program / Aktiviti', margin, y);
-  y += 20;
-
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'normal');
-
-  const isi = [
-    ['Nama Program/Aktiviti', data.namaProgram],
-    ['Tarikh & Masa', formatTarikh(data.tarikhMasa)],
-    ['Tempat', data.tempat],
-    ['Anjuran', data.anjuran],
-    ['Penaja', data.penaja],
-    ['Sasaran', data.sasaran],
-    ['Objektif', data.objektif],
-    ['Butiran Aktiviti', data.butiranAktiviti],
-    ['Pencapaian', data.pencapaian],
-    ['Kekuatan', data.kekuatan],
-    ['Kelemahan', data.kelemahan],
-    ['Cadangan Intervensi', data.intervensi],
-    ['Impak Program', data.impak],
-    ['Kos/Peralatan', data.kos],
-  ];
-
-  isi.forEach(([label, value]) => {
-    if (value && value.trim() !== '') {
-      tambahTeks(`${label}:`, margin, y, { style: 'bold' });
-      y += 16;
-      tambahTeks(value, margin + 20, y);
-      y += 20;
-    }
-  });
-
-  // Gambar bukti (hanya satu untuk ringkasan)
-  if (data.gambar && data.gambar.length > 0) {
-    try {
-      const imgProps = pdf.getImageProperties(data.gambar[0]);
-      const imgWidth = 150;
-      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-      if (y + imgHeight > pageHeight - margin - 100) {
-        pdf.addPage();
-        y = margin;
-      }
-      pdf.text('Gambar Bukti:', margin, y);
-      y += 10;
-      pdf.addImage(data.gambar[0], 'PNG', margin, y, imgWidth, imgHeight);
-      y += imgHeight + 20;
-    } catch {
-      // ignore error
-    }
-  }
-
-  // Ruang Tandatangan & Cop Bulat Sekolah
-  const tandatanganY = pageHeight - margin - 150;
-  pdf.setLineWidth(0.5);
-  pdf.line(margin, tandatanganY, margin + 160, tandatanganY); // Garis tanda tangan pelapor
-  pdf.text('Nama Pelapor:', margin, tandatanganY + 15);
-  pdf.text(data.penyedia || dataSekolahGuru.guruPelapor || '-', margin, tandatanganY + 35);
-
-  pdf.line(margin + 200, tandatanganY, margin + 360, tandatanganY); // Garis tanda tangan penyemak
-  pdf.text('Nama Penyemak:', margin + 200, tandatanganY + 15);
-  pdf.text(data.penyemak || dataSekolahGuru.guruPenyemak || '-', margin + 200, tandatanganY + 35);
-
-  pdf.line(margin + 400, tandatanganY, margin + 560, tandatanganY); // Garis tanda tangan pengesah
-  pdf.text('Nama Pengesah:', margin + 400, tandatanganY + 15);
-  pdf.text(data.pengesah || dataSekolahGuru.guruPengesah || '-', margin + 400, tandatanganY + 35);
-
-  // Cop bulat sekolah (kotak tempat)
-  pdf.rect(margin + 400, tandatanganY + 50, 120, 80);
-  pdf.text('Cop Bulat Sekolah', margin + 415, tandatanganY + 90);
-
-  // Tarikh hari ini di bawah cop
-  const tarikhHariIni = new Date().toLocaleDateString('ms-MY');
-  pdf.text(`Tarikh: ${tarikhHariIni}`, margin + 405, tandatanganY + 140);
-
-  // Simpan fail PDF
-  pdf.save(`Laporan_OPR_${data.id}.pdf`);
-}
-
-// ======= Event Modal Maklumat Sekolah & Guru =======
+// --- Modal Maklumat Sekolah & Guru ---
 bukaModalSekolahBtn.addEventListener('click', () => {
   isiFormSekolahGuru();
   modalSekolah.style.display = 'flex';
@@ -559,7 +451,7 @@ resetModalSekolahBtn.addEventListener('click', () => {
   }
 });
 
-// ======= Simpan Maklumat Sekolah & Guru dari Modal =======
+// --- Simpan maklumat sekolah & guru dari modal ---
 formSekolahGuru.addEventListener('submit', e => {
   e.preventDefault();
   dataSekolahGuru.namaSekolah = namaSekolahInput.value.trim();
@@ -577,7 +469,7 @@ formSekolahGuru.addEventListener('submit', e => {
   el('pengesah').value = dataSekolahGuru.guruPengesah;
 });
 
-// ======= Preview Logo Sekolah Dalam Modal =======
+// --- Preview logo sekolah dalam modal ---
 logoSekolahInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) {
@@ -600,14 +492,14 @@ logoSekolahInput.addEventListener('change', e => {
   reader.readAsDataURL(file);
 });
 
-// ======= Dark Mode Toggle =======
+// --- Dark mode toggle ---
 darkModeBtn.addEventListener('click', () => {
   const isDark = document.body.classList.toggle('dark');
   darkModeBtn.classList.toggle('active', isDark);
   localStorage.setItem('darkMode', isDark ? 'true' : 'false');
 });
 
-// ======= Init =======
+// --- Init aplikasi ---
 window.addEventListener('DOMContentLoaded', () => {
   loadDataOPR();
   loadDataSekolahGuru();
@@ -616,20 +508,17 @@ window.addEventListener('DOMContentLoaded', () => {
   isiFormSekolahGuru();
   periksaKamera();
 
-  // Auto isi nama pelapor, penyemak, pengesah dalam borang laporan
   el('penyedia').value = dataSekolahGuru.guruPelapor || '';
   el('penyemak').value = dataSekolahGuru.guruPenyemak || '';
   el('pengesah').value = dataSekolahGuru.guruPengesah || '';
 
-  // Dark mode restore
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');
     darkModeBtn.classList.add('active');
   }
 });
 
-// ======= Events untuk Carian & Filter =======
+// --- Events carian & filter ---
 carianInput.addEventListener('input', paparkanSenaraiOPR);
 filterBulan.addEventListener('change', paparkanSenaraiOPR);
 filterGuru.addEventListener('change', paparkanSenaraiOPR);
-
