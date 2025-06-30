@@ -14,10 +14,47 @@
     <header>
         <h1>Laporan Sekolah Satu Muka (OPR)</h1>
         <p class="sokongan">
-            Aplikasi untuk semua guru, PK dan Guru Besar – isi laporan, ambil gambar, suara, cetak & simpan PDF. Boleh digunakan walaupun offline.
+            Aplikasi untuk semua guru, PK dan Guru Besar – isi laporan, ambil gambar, cetak & simpan PDF. Boleh digunakan walaupun offline.
         </p>
-        <button id="darkModeBtn" aria-label="Tukar ke Dark Mode">🌙 Paparan Gelap</button>
     </header>
+
+    <!-- Butang untuk edit maklumat sekolah & guru -->
+    <button id="editDataSekolahBtn" style="display:none; margin-bottom:16px;">
+        ✏️ Edit Maklumat Sekolah & Guru
+    </button>
+
+    <!-- Borang Maklumat Sekolah & Guru -->
+    <section id="dataSekolah" class="kad-borang" style="display:none;">
+        <h2>Maklumat Sekolah & Guru</h2>
+        <form id="formSekolah" autocomplete="off">
+            <label>
+                Nama Sekolah:
+                <input type="text" id="namaSekolah" required placeholder="Contoh: SK Sokor" />
+            </label>
+            <label>
+                Alamat Sekolah:
+                <textarea id="alamatSekolah" rows="2" placeholder="Alamat penuh sekolah"></textarea>
+            </label>
+            <label>
+                Logo Sekolah (PNG/JPG):
+                <input type="file" id="logoSekolah" accept="image/png, image/jpeg" />
+            </label>
+            <div id="previewLogo"></div>
+            <label>
+                Nama Guru Pelapor:
+                <input type="text" id="guruPelapor" required placeholder="Nama penuh guru pelapor" />
+            </label>
+            <label>
+                Nama Penolong Kanan:
+                <input type="text" id="guruPenyemak" placeholder="Nama penuh Penolong Kanan" />
+            </label>
+            <label>
+                Nama Guru Besar:
+                <input type="text" id="guruPengesah" placeholder="Nama penuh Guru Besar" />
+            </label>
+            <button type="submit" class="btn-utama">Simpan Maklumat Sekolah & Guru</button>
+        </form>
+    </section>
 
     <!-- Borang Laporan OPR -->
     <section id="borangOPR" class="kad-borang">
@@ -83,15 +120,15 @@
 
             <label>
                 Nama Penyedia: <span class="nota">(Guru Pelapor)</span>
-                <input type="text" id="penyedia" required placeholder="Nama Guru" />
+                <input type="text" id="penyedia" readonly />
             </label>
             <label>
                 Nama Penyemak: <span class="nota">(Penolong Kanan)</span>
-                <input type="text" id="penyemak" placeholder="Nama Penolong Kanan / Guru Besar" />
+                <input type="text" id="penyemak" readonly />
             </label>
             <label>
                 Nama Pengesah: <span class="nota">(Guru Besar)</span>
-                <input type="text" id="pengesah" placeholder="Nama Pengetua/Guru Besar" />
+                <input type="text" id="pengesah" readonly />
             </label>
 
             <!-- Gambar Bukti -->
@@ -115,12 +152,6 @@
 
             <div class="gambar-preview" id="gambarPreview"></div>
 
-            <!-- Suara ke Teks -->
-            <div class="input-suara">
-                <button type="button" id="rekodSuaraBtn" aria-label="Rekod Suara">🎤 Rekod Suara ke Teks</button>
-                <span id="statusRekod" class="rekod-status"></span>
-            </div>
-
         </form>
 
         <div class="butang-grup" style="margin-top:15px;">
@@ -129,7 +160,7 @@
             <input type="file" id="importFile" accept=".json" style="display:none" />
 
             <button id="downloadBtn" type="button">Download Data (JSON)</button>
-            <button id="cetakBtn" type="button">Cetak Laporan</button>
+            <button id="cetakBtn" type="button">Preview Cetak</button>
             <button id="downloadPdfBtn" type="button">Download Laporan Ini (PDF)</button>
         </div>
     </section>
@@ -143,28 +174,6 @@
             placeholder="Cari laporan / program / tempat..."
             aria-label="Cari laporan"
         />
-        <div class="filter-row">
-            <label for="filterBulan">Bulan:</label>
-            <select id="filterBulan">
-                <option value="">Semua Bulan</option>
-                <option value="01">Januari</option>
-                <option value="02">Februari</option>
-                <option value="03">Mac</option>
-                <option value="04">April</option>
-                <option value="05">Mei</option>
-                <option value="06">Jun</option>
-                <option value="07">Julai</option>
-                <option value="08">Ogos</option>
-                <option value="09">September</option>
-                <option value="10">Oktober</option>
-                <option value="11">November</option>
-                <option value="12">Disember</option>
-            </select>
-            <label for="filterGuru">Guru:</label>
-            <select id="filterGuru">
-                <option value="">Semua Guru</option>
-            </select>
-        </div>
         <div id="listOPR"></div>
     </section>
 </div>
@@ -172,7 +181,7 @@
 <footer>
     <p>Hakcipta GB Mie &copy; 2025. Dikod dengan penuh kasih sayang dan hormat kepada cikgu-cikgu SK Sokor.</p>
     <p>
-        <a href="https://github.com/cikgu-opr/opr-sekolah" target="_blank" rel="noopener noreferrer"
+        <a href="https://github.com/farimi2025/myopr" target="_blank" rel="noopener noreferrer"
             >Kod Sumber (GitHub)</a
         >
     </p>
