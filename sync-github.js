@@ -1,13 +1,19 @@
-// Modul ringkas contoh sync up data ke GitHub sekolah
-// Real implementasi perlu endpoint API, token dan server-side
+// sync-github.js
+// Fungsi syncWithGitHub sync data laporan dari repo GitHub
 
-async function syncUpToGitHub(dataOPR) {
-  // Contoh: buat request POST ke API GitHub untuk commit fail JSON
-  // Gantikan dengan API sebenar sekolah
-  alert("Sync up ke GitHub sekolah belum disediakan. Nanti saya tambah.");
-}
-
-// Papar senarai fail yang sudah sync
-function paparkanSenaraiSync() {
-  alert("Senarai fail sync belum disediakan. Nanti saya tambah.");
+async function syncWithGitHub() {
+  // Contoh fetch data json dari GitHub repo public
+  const url = 'https://raw.githubusercontent.com/farimi2025/myopr/main/opr_data.json';
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Gagal dapatkan data dari GitHub');
+  const data = await response.json();
+  // Gabungkan data dengan localStorage dataOPR
+  const existingData = JSON.parse(localStorage.getItem('dataOPR')) || [];
+  const existingIds = new Set(existingData.map(d => d.id));
+  data.forEach(item => {
+    if (!existingIds.has(item.id)) {
+      existingData.push(item);
+    }
+  });
+  localStorage.setItem('dataOPR', JSON.stringify(existingData));
 }
