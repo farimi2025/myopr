@@ -1,12 +1,11 @@
 // ==========================
-// APP.JS OPR SEKOLAH VERSI KEMASKINI & NAIK TARAF
+// APP.JS OPR SEKOLAH VERSI MESRA GURU & STABIL
 // ==========================
 
+// ======= Pilihan DOM =======
 const el = id => document.getElementById(id);
 
-// Elemen DOM
 const simpanBtn = el('simpanBtn');
-const importBtn = el('importBtn');
 const downloadBtn = el('downloadBtn');
 const cetakBtn = el('cetakBtn');
 const downloadPdfBtn = el('downloadPdfBtn');
@@ -25,43 +24,158 @@ const gambarPreview = el('gambarPreview');
 const padamGambarBtn = el('padamGambarBtn');
 const statusKamera = el('statusKamera');
 
-const rekodSuaraBtn = el('rekodSuaraBtn');
-const statusRekod = el('statusRekod');
-const importFile = el('importFile');
+const bukaModalSekolahBtn = el('bukaModalSekolahBtn');
+const modalSekolah = el('modalSekolah');
+const tutupModalSekolahBtn = el('tutupModalSekolahBtn');
+const resetModalSekolahBtn = el('resetModalSekolahBtn');
 
+const formSekolahGuru = el('formSekolahGuru');
+const namaSekolahInput = el('namaSekolah');
+const alamatSekolahInput = el('alamatSekolah');
+const logoSekolahInput = el('logoSekolah');
+const logoPreview = el('logoPreview');
+const guruPelaporInput = el('guruPelapor');
+const guruPenyemakInput = el('guruPenyemak');
+const guruPengesahInput = el('guruPengesah');
+
+// ======= Data =======
 let dataOPR = [];
-let gambarBuktiBase64 = []; // max 3 gambar
+let gambarBuktiBase64 = []; // Simpan gambar dalam base64, max 3
 
-// Maklumat sekolah & guru (auto isi)
-const sekolahInfo = {
-  penolongKanan: 'Pn. Aisyah Binti Ahmad',
-  guruBesar: 'En. Zulkifli Bin Hassan',
+let dataSekolahGuru = {
+  namaSekolah: '',
+  alamatSekolah: '',
+  logoSekolahBase64: '', // base64 image
+  guruPelapor: '',
+  guruPenyemak: '',
+  guruPengesah: ''
 };
 
-// ==================== INIT ====================
-window.addEventListener('DOMContentLoaded', () => {
+// ======= Fungsi Utility =======
+function escapeHTML(text) {
+  if (!text) return '';
+  return text.replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+function formatTarikh(t) {
+  if (!t) return '-';
   try {
-    if (localStorage.getItem('dataOPR')) {
-      dataOPR = JSON.parse(localStorage.getItem('dataOPR')) || [];
-    }
-  } catch {
-    dataOPR = [];
+    const d = new Date(t);
+    const hari = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
+    return hari[d.getDay()] + ", " + d.toLocaleDateString('ms-MY') + " " +
+      d.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' });
+  } catch { return t; }
+}
+
+// ======= Load & Simpan Data Sekolah & Guru =======
+function loadDataSekolahGuru() {
+  try {
+    const s = localStorage.getItem('dataSekolahGuru');
+    if (s) dataSekolahGuru = JSON.parse(s);
+  } catch { dataSekolahGuru = {...dataSekolahGuru}; }
+}
+function simpanDataSekolahGuru() {
+  localStorage.setItem('dataSekolahGuru', JSON.stringify(dataSekolahGuru));
+}
+// Isi form modal maklumat sekolah dengan data tersimpan
+function isiFormSekolahGuru() {
+  namaSekolahInput.value = dataSekolahGuru.namaSekolah || '';
+  alamatSekolahInput.value = dataSekolahGuru.alamatSekolah || '';
+  guruPelaporInput.value = dataSekolahGuru.guruPelapor || '';
+  guruPenyemakInput.value = dataSekolahGuru.guruPenyemak || '';
+  guruPengesahInput.value = dataSekolahGuru.guruPengesah || '';
+  if (dataSekolahGuru.logoSekolahBase64) {
+    logoPreview.innerHTML = `<img src="${dataSekolahGuru.logoSekolahBase64}" alt="Logo Sekolah" style="max-width:120px; max-height:120px; border-radius:12px;">`;
+  } else {
+    logoPreview.innerHTML = '';
+  }
+}
+
+// ======= Load & Simpan Data Laporan OPR =======
+function loadDataOPR() {
+  try {
+    const d = localStorage.getItem('dataOPR');
+    if (d) dataOPR = JSON.parse(d);
+  } catch { dataOPR = []; }
+}
+function simpanDataOPR() {
+  localStorage.setItem('dataOPR', JSON.stringify(dataOPR));
+}
+
+// ======= Papar Senarai Laporan =======
+function paparkanSenaraiOPR() {
+  let list = dataOPR.slice(); // clone array
+  const q = (carianInput.value || '').toLowerCase();
+
+  // Cari berdasarkan apa sahaja text dalam laporan
+  if (q) {
+    list = list.filter(item =>
+      Object.values(item).join(' ').toLowerCase().includes(q)
+    );
+  }
+  // Filter bulan
+  if (filterBulan.value) {
+    list = list.filter(item => {
+      const bulan = (item.tarikhMasa || '').slice(5, 7);
+      return bulan === filterBulan.value;
+    });
+  }
+  // Filter guru pelapor
+  if (filterGuru.value) {
+    list = list.filter(item => item.penyedia === filterGuru.value);
   }
 
-  // Auto isi penyemak & pengesah
-  el('penyemak').value = sekolahInfo.penolongKanan;
-  el('pengesah').value = sekolahInfo.guruBesar;
+  // Update dropdown guru pelapor ikut data terkini
+  const semuaGuru = [...new Set(dataOPR.map(x => x.penyedia).filter(Boolean))].sort();
+  filterGuru.innerHTML = '<option value="">Semua Guru</option>' +
+    semuaGuru.map(guru => `<option value="${escapeHTML(guru)}">${escapeHTML(guru)}</option>`).join('');
+  filterGuru.value = filterGuru.value || '';
 
-  paparkanSenaraiOPR();
-  periksaKamera();
-  periksaMikrofon();
+  if (list.length === 0) {
+    listOPR.innerHTML = '<p>Tiada laporan ditemui.</p>';
+    return;
+  }
 
-  if (localStorage.getItem('darkMode') === 'true') aktifkanDarkMode(true);
-});
+  listOPR.innerHTML = list.map(item => `
+    <div class="opr-item" data-id="${item.id}">
+      <span class="opr-tarikh">${formatTarikh(item.tarikhMasa)}</span>
+      <div class="opr-tajuk">${escapeHTML(item.namaProgram)}</div>
+      <div class="opr-guru">Tempat: ${escapeHTML(item.tempat)}${item.sasaran ? ' | Sasaran: ' + escapeHTML(item.sasaran) : ''}</div>
+      <div class="opr-ringkasan">
+        <b>Objektif:</b> ${escapeHTML(item.objektif)}<br>
+        <b>Butiran:</b> ${escapeHTML(item.butiranAktiviti)}<br>
+        <b>Pencapaian:</b> ${escapeHTML(item.pencapaian)}<br>
+        <b>Kekuatan:</b> ${escapeHTML(item.kekuatan)}<br>
+        <b>Kelemahan:</b> ${escapeHTML(item.kelemahan)}<br>
+        <b>Cadangan Intervensi:</b> ${escapeHTML(item.intervensi)}<br>
+        <b>Impak:</b> ${escapeHTML(item.impak)}<br>
+        <b>Kos/Peralatan:</b> ${escapeHTML(item.kos)}<br>
+        ${item.penaja ? `<div><b>Penaja:</b> ${escapeHTML(item.penaja)}</div>` : ''}
+        ${item.anjuran ? `<div><b>Anjuran:</b> ${escapeHTML(item.anjuran)}</div>` : ''}
+      </div>
+      ${(Array.isArray(item.gambar) && item.gambar.length) ? item.gambar.map((gm,i) => `
+        <img src="${gm}" alt="Gambar Bukti" style="max-width:85px; max-height:85px; border-radius:8px; margin:2px; cursor:pointer;" onclick="bukaImejTabBaru('${encodeURIComponent(gm)}')" title="Klik untuk buka imej penuh">
+      `).join('') : ''}
+      <div class="opr-guru" style="margin-top:8px;">
+        <i>Penyedia: ${escapeHTML(item.penyedia)}${item.penyemak ? ', Penyemak: ' + escapeHTML(item.penyemak) : ''}${item.pengesah ? ', Pengesah: ' + escapeHTML(item.pengesah) : ''}</i>
+      </div>
+    </div>
+  `).join('');
+}
 
-// =============== Kamera & Mikrofon ===============
-let kameraSedia = false,
-  mikrofonSedia = false;
+// ======= Buka Imej dalam Tab Baru =======
+window.bukaImejTabBaru = function(base64StrEncoded) {
+  const base64Str = decodeURIComponent(base64StrEncoded);
+  const w = window.open('');
+  if (!w) return alert('Sila benarkan popup untuk membuka imej.');
+  const html = `<img src="${base64Str}" style="max-width:100%; height:auto;" /><br><a href="${base64Str}" download="gambar_bukti.png">Muat Turun Gambar</a>`;
+  w.document.write(html);
+  w.document.title = 'Imej Bukti';
+}
+
+// ======= Fungsi Ambil & Upload Gambar =======
+let kameraSedia = false;
 
 function periksaKamera() {
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -75,24 +189,6 @@ function periksaKamera() {
     ambilGambarBtn.disabled = true;
   }
 }
-function periksaMikrofon() {
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.enumerateDevices().then(devices => {
-      mikrofonSedia = devices.some(d => d.kind === 'audioinput');
-      if (!mikrofonSedia) {
-        rekodSuaraBtn.disabled = true;
-        statusRekod.textContent = 'Peranti ini tidak ada mikrofon.';
-      }
-    });
-  } else {
-    rekodSuaraBtn.disabled = true;
-    statusRekod.textContent = 'Peranti ini tidak menyokong mikrofon.';
-  }
-}
-
-// =============== Ambil / Upload Gambar ===============
-const HAD_SAIZ = 350 * 1024; // 350KB max
-const MAKS_GAMBAR = 3;
 
 ambilGambarBtn.addEventListener('click', () => {
   if (!kameraSedia) {
@@ -108,7 +204,7 @@ gambarBuktiInput.addEventListener('change', e => {
   const files = e.target.files;
   if (!files.length) return;
   [...files].forEach(file => {
-    if (gambarBuktiBase64.length >= MAKS_GAMBAR) return;
+    if (gambarBuktiBase64.length >= 3) return alert('Hanya maksimum 3 gambar sahaja.');
     resizeImageFile(file, base64 => {
       gambarBuktiBase64.push(base64);
       paparkanPreviewGambar();
@@ -116,35 +212,98 @@ gambarBuktiInput.addEventListener('change', e => {
   });
   gambarBuktiInput.value = '';
 });
+padamGambarBtn.addEventListener('click', () => {
+  gambarBuktiBase64 = [];
+  paparkanPreviewGambar();
+});
+window.padamGambar = function(idx) {
+  gambarBuktiBase64.splice(idx, 1);
+  paparkanPreviewGambar();
+};
+function paparkanPreviewGambar() {
+  gambarPreview.innerHTML = gambarBuktiBase64.map((src, i) =>
+    `<div style="display:inline-block;position:relative;margin:2px;">
+      <img src="${src}" style="max-width:85px;max-height:85px;border-radius:8px;cursor:pointer;" onclick="bukaImejTabBaru('${encodeURIComponent(src)}')" title="Klik untuk buka imej penuh" />
+      <button style="position:absolute;top:2px;right:2px;" onclick="padamGambar(${i})" type="button" aria-label="Padam Gambar">❌</button>
+    </div>`
+  ).join('');
+  padamGambarBtn.style.display = gambarBuktiBase64.length ? 'inline-block' : 'none';
+}
+
+// Fungsi resize dan compress gambar (max 900px lebar/tinggi)
+const MAX_W = 900, MAX_H = 900, MAX_SIZE = 350 * 1024; // 350KB max
+function resizeImageFile(file, callback) {
+  const reader = new FileReader();
+  reader.onload = evt => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width;
+      let h = img.height;
+      if (w > MAX_W || h > MAX_H) {
+        const scale = Math.min(MAX_W / w, MAX_H / h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      let quality = 0.85;
+      function compress() {
+        const base64 = canvas.toDataURL('image/png', quality);
+        if (base64.length * (3 / 4) > MAX_SIZE && quality > 0.5) {
+          quality -= 0.05;
+          setTimeout(compress, 10);
+        } else {
+          callback(base64);
+        }
+      }
+      compress();
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Fungsi buka kamera & ambil gambar
 function bukaKameraDanAmbilGambar() {
   const kameraPopup = document.createElement('div');
   kameraPopup.className = 'kamera-popup';
-  kameraPopup.style =
-    'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000c;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;';
+  kameraPopup.style = `
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.8);
+    display:flex;flex-direction:column;
+    justify-content:center;align-items:center;
+    z-index:10000;
+  `;
   kameraPopup.innerHTML = `
-        <video id="videoKamera" autoplay playsinline style="max-width:90vw;max-height:60vh;border-radius:12px;"></video>
-        <div style="margin-top:12px;">
-          <button id="snapBtn" style="font-size:1.2rem;padding:8px 16px;margin-right:10px;cursor:pointer;">📸 Ambil Foto</button>
-          <button id="tutupKameraBtn" style="font-size:1.2rem;padding:8px 16px;cursor:pointer;">Tutup</button>
-        </div>
-    `;
+    <video id="videoKamera" autoplay playsinline style="max-width:100%;border-radius:12px;"></video>
+    <div style="margin-top:12px;">
+      <button id="snapBtn" style="margin-right:12px;padding:8px 20px;font-size:1.1rem;">📸 Ambil Foto</button>
+      <button id="tutupKameraBtn" style="padding:8px 20px;font-size:1.1rem;">Tutup</button>
+    </div>
+  `;
   document.body.appendChild(kameraPopup);
+
   const video = kameraPopup.querySelector('#videoKamera');
   const snapBtn = kameraPopup.querySelector('#snapBtn');
   const tutupKameraBtn = kameraPopup.querySelector('#tutupKameraBtn');
   let stream;
-  navigator.mediaDevices
-    .getUserMedia({ video: { facingMode: 'environment' } })
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(s => {
       stream = s;
       video.srcObject = stream;
     })
     .catch(() => {
-      statusKamera.textContent = 'Tidak dapat akses kamera. Sila benarkan akses.';
+      statusKamera.textContent = "Tidak dapat akses kamera. Sila benarkan akses.";
       document.body.removeChild(kameraPopup);
     });
+
   snapBtn.addEventListener('click', () => {
-    if (gambarBuktiBase64.length >= MAKS_GAMBAR) {
+    if (gambarBuktiBase64.length >= 3) {
       alert('Hanya maksimum 3 gambar sahaja.');
       if (stream) stream.getTracks().forEach(track => track.stop());
       document.body.removeChild(kameraPopup);
@@ -166,63 +325,14 @@ function bukaKameraDanAmbilGambar() {
     document.body.removeChild(kameraPopup);
   });
 }
-function paparkanPreviewGambar() {
-  gambarPreview.innerHTML = gambarBuktiBase64
-    .map(
-      (src, i) => `<div style="display:inline-block;position:relative;margin:2px;">
-            <a href="${src}" target="_blank" rel="noopener noreferrer" title="Buka gambar penuh">
-              <img src="${src}" style="max-width:85px;max-height:85px;border-radius:8px;cursor:pointer;">
-            </a>
-            <button style="position:absolute;top:2px;right:2px;" onclick="padamGambar(${i})" type="button" aria-label="Padam gambar">❌</button>
-        </div>`
-    )
-    .join('');
-  padamGambarBtn.style.display = gambarBuktiBase64.length ? 'inline-block' : 'none';
-}
-window.padamGambar = function (idx) {
-  gambarBuktiBase64.splice(idx, 1);
-  paparkanPreviewGambar();
-};
-padamGambarBtn.addEventListener('click', () => {
-  gambarBuktiBase64 = [];
-  paparkanPreviewGambar();
-});
-// Resize & compress
-function resizeImageFile(file, callback) {
-  const reader = new FileReader();
-  reader.onload = evt => {
-    const img = new window.Image();
-    img.onload = function () {
-      resizeImageCanvas(imgToCanvas(img), callback);
-    };
-    img.src = evt.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-function imgToCanvas(img) {
-  const MAX_W = 900,
-    MAX_H = 900;
-  let w = img.width,
-    h = img.height;
-  if (w > MAX_W || h > MAX_H) {
-    const scale = Math.min(MAX_W / w, MAX_H / h);
-    w = Math.round(w * scale);
-    h = Math.round(h * scale);
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-  return canvas;
-}
 function resizeImageCanvas(canvas, callback) {
   let quality = 0.85;
-  let base64 = canvas.toDataURL('image/jpeg', quality);
+  let base64 = canvas.toDataURL('image/png', quality);
   function tryCompress() {
-    if (base64.length / 1.37 > HAD_SAIZ && quality > 0.5) {
+    if (base64.length * (3 / 4) > MAX_SIZE && quality > 0.5) {
       quality -= 0.05;
-      base64 = canvas.toDataURL('image/jpeg', quality);
-      setTimeout(tryCompress, 0);
+      base64 = canvas.toDataURL('image/png', quality);
+      setTimeout(tryCompress, 10);
     } else {
       callback(base64);
     }
@@ -230,40 +340,15 @@ function resizeImageCanvas(canvas, callback) {
   tryCompress();
 }
 
-// =============== Suara ke Teks ===============
-rekodSuaraBtn.addEventListener('click', () => {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition || !mikrofonSedia) {
-    statusRekod.textContent = 'Peranti ini tidak menyokong suara ke teks atau tiada mikrofon.';
+// ======= Simpan Laporan =======
+simpanBtn.addEventListener('click', () => {
+  // Validasi borang asas
+  if (!oprForm.checkValidity()) {
+    alert('Sila lengkapkan semua maklumat wajib sebelum simpan.');
     return;
   }
-  const rec = new SpeechRecognition();
-  rec.lang = 'ms-MY';
-  rec.continuous = false;
-  rec.interimResults = false;
-  statusRekod.textContent = 'Sila bercakap... (rakaman aktif)';
-  rekodSuaraBtn.disabled = true;
-  rec.start();
-  rec.onresult = function (event) {
-    let hasil = event.results[0][0].transcript;
-    el('butiranAktiviti').value += (el('butiranAktiviti').value ? '\n' : '') + hasil;
-    statusRekod.textContent = 'Rakaman berjaya!';
-    rekodSuaraBtn.disabled = false;
-  };
-  rec.onerror = function () {
-    statusRekod.textContent = 'Ralat suara. Sila cuba lagi.';
-    rekodSuaraBtn.disabled = false;
-  };
-  rec.onend = function () {
-    statusRekod.textContent = '';
-    rekodSuaraBtn.disabled = false;
-  };
-});
 
-// =============== Simpan, Papar Senarai, Import, Export ===============
-simpanBtn.addEventListener('click', () => {
-  if (!oprForm.reportValidity()) return;
-
+  // Dapatkan data borang
   const data = {
     namaProgram: el('namaProgram').value.trim(),
     tarikhMasa: el('tarikhMasa').value,
@@ -283,22 +368,12 @@ simpanBtn.addEventListener('click', () => {
     penyemak: el('penyemak').value.trim(),
     pengesah: el('pengesah').value.trim(),
     gambar: gambarBuktiBase64.slice(0),
-    id: el('oprForm').dataset.editingId ? Number(el('oprForm').dataset.editingId) : Date.now(),
+    id: Date.now()
   };
 
-  if (el('oprForm').dataset.editingId) {
-    // Edit existing
-    const idx = dataOPR.findIndex(x => x.id === data.id);
-    if (idx >= 0) {
-      dataOPR[idx] = data;
-    }
-    delete el('oprForm').dataset.editingId;
-  } else {
-    // New entry
-    dataOPR.unshift(data);
-  }
-
-  simpanDataLocal();
+  // Masukkan data ke depan array
+  dataOPR.unshift(data);
+  simpanDataOPR();
   paparkanSenaraiOPR();
 
   oprForm.reset();
@@ -309,357 +384,8 @@ simpanBtn.addEventListener('click', () => {
   alert('Laporan berjaya disimpan!');
 });
 
-function simpanDataLocal() {
-  localStorage.setItem('dataOPR', JSON.stringify(dataOPR));
-}
-
-function paparkanSenaraiOPR() {
-  let list = dataOPR;
-  const q = (carianInput.value || '').toLowerCase();
-
-  if (q) {
-    list = list.filter(item =>
-      Object.values(item)
-        .join(' ')
-        .toLowerCase()
-        .includes(q)
-    );
-  }
-  if (filterBulan && filterBulan.value) {
-    list = list.filter(item => {
-      const bulan = (item.tarikhMasa || '').slice(5, 7);
-      return bulan === filterBulan.value;
-    });
-  }
-  if (filterGuru && filterGuru.value) {
-    list = list.filter(item => item.penyedia === filterGuru.value);
-  }
-
-  // Update dropdown guru ikut senarai
-  const semuaGuru = [...new Set(dataOPR.map(item => item.penyedia).filter(Boolean))].sort();
-  filterGuru.innerHTML =
-    '<option value="">Semua Guru</option>' +
-    semuaGuru.map(guru => `<option value="${escapeHTML(guru)}">${escapeHTML(guru)}</option>`).join('');
-  filterGuru.value = filterGuru.value || '';
-
-  if (list.length === 0) {
-    listOPR.innerHTML = '<p>Tiada laporan ditemui.</p>';
-    return;
-  }
-
-  listOPR.innerHTML = list
-    .map(
-      item => `
-      <div class="opr-item" data-id="${item.id}">
-        <div class="opr-tajuk" tabindex="0" role="button" aria-pressed="false" onclick="previewLaporan(${item.id})">${escapeHTML(item.namaProgram)}</div>
-        <div class="opr-tarikh">${formatTarikh(item.tarikhMasa)}</div>
-        <div class="opr-btn-group">
-          <button onclick="previewLaporan(${item.id})" aria-label="Preview laporan ${escapeHTML(item.namaProgram)}">Preview</button>
-          <button onclick="editLaporan(${item.id})" aria-label="Edit laporan ${escapeHTML(item.namaProgram)}">Edit</button>
-          <button onclick="padamLaporan(${item.id})" aria-label="Padam laporan ${escapeHTML(item.namaProgram)}">Padam</button>
-        </div>
-      </div>
-    `
-    )
-    .join('');
-}
-
-carianInput.addEventListener('input', paparkanSenaraiOPR);
-filterBulan.addEventListener('change', paparkanSenaraiOPR);
-filterGuru.addEventListener('change', paparkanSenaraiOPR);
-
-// =============== Fungsi Preview, Edit, Padam ===============
-function previewLaporan(id) {
-  const laporan = dataOPR.find(x => x.id === id);
-  if (!laporan) return alert('Laporan tidak ditemui.');
-
-  // Buat modal preview laporan cetak
-  bukaPreviewModal(laporan);
-}
-
-function editLaporan(id) {
-  const laporan = dataOPR.find(x => x.id === id);
-  if (!laporan) return alert('Laporan tidak ditemui.');
-
-  // Isi borang dengan data
-  el('namaProgram').value = laporan.namaProgram;
-  el('tarikhMasa').value = laporan.tarikhMasa;
-  el('tempat').value = laporan.tempat;
-  el('anjuran').value = laporan.anjuran;
-  el('penaja').value = laporan.penaja;
-  el('sasaran').value = laporan.sasaran;
-  el('objektif').value = laporan.objektif;
-  el('butiranAktiviti').value = laporan.butiranAktiviti;
-  el('pencapaian').value = laporan.pencapaian;
-  el('kekuatan').value = laporan.kekuatan;
-  el('kelemahan').value = laporan.kelemahan;
-  el('intervensi').value = laporan.intervensi;
-  el('impak').value = laporan.impak;
-  el('kos').value = laporan.kos;
-  el('penyedia').value = laporan.penyedia;
-  el('penyemak').value = laporan.penyemak;
-  el('pengesah').value = laporan.pengesah;
-
-  gambarBuktiBase64 = laporan.gambar.slice();
-  paparkanPreviewGambar();
-  padamGambarBtn.style.display = gambarBuktiBase64.length ? 'inline-block' : 'none';
-
-  oprForm.dataset.editingId = laporan.id;
-
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function padamLaporan(id) {
-  if (!confirm('Padam laporan ini? Tindakan tidak boleh dibatalkan.')) return;
-
-  dataOPR = dataOPR.filter(x => x.id !== id);
-  simpanDataLocal();
-  paparkanSenaraiOPR();
-
-  alert('Laporan berjaya dipadam.');
-}
-
-// =============== Format Tarikh Masa =================
-function formatTarikh(t) {
-  if (!t) return '-';
-  try {
-    const d = new Date(t);
-    const hari = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
-    return (
-      hari[d.getDay()] +
-      ', ' +
-      d.toLocaleDateString('ms-MY') +
-      ' ' +
-      d.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })
-    );
-  } catch {
-    return t;
-  }
-}
-
-// =============== Escape HTML =================
-function escapeHTML(text) {
-  if (!text) return '';
-  return text.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-}
-
-// =============== Dark Mode =================
-darkModeBtn.addEventListener('click', () => {
-  aktifkanDarkMode();
-});
-function aktifkanDarkMode(force) {
-  const isDark = force !== undefined ? force : !document.body.classList.contains('dark');
-  if (isDark) {
-    document.body.classList.add('dark');
-    darkModeBtn.classList.add('active');
-  } else {
-    document.body.classList.remove('dark');
-    darkModeBtn.classList.remove('active');
-  }
-  localStorage.setItem('darkMode', isDark ? 'true' : 'false');
-}
-
-// =============== CETAK & DOWNLOAD PDF ===============
-
-// Cetak Laporan: guna window.print() cetak preview
-cetakBtn.addEventListener('click', () => {
-  const editingId = oprForm.dataset.editingId;
-  if (editingId) {
-    // Jika dalam mod edit, preview borang simpan sebagai laporan cetak
-    const laporan = dataOPR.find(x => x.id === Number(editingId));
-    if (laporan) {
-      bukaPreviewModal(laporan, true);
-    } else {
-      alert('Tiada laporan untuk cetak.');
-    }
-  } else {
-    window.print();
-  }
-});
-
-// Download PDF: guna html2pdf.js
-downloadPdfBtn.addEventListener('click', () => {
-  const editingId = oprForm.dataset.editingId;
-  if (editingId) {
-    const laporan = dataOPR.find(x => x.id === Number(editingId));
-    if (laporan) {
-      generatePDFfromData(laporan);
-    } else {
-      alert('Tiada laporan untuk dimuat turun.');
-    }
-  } else {
-    alert('Sila pilih laporan dengan edit dahulu untuk muat turun PDF.');
-  }
-});
-
-// Generate PDF dari data laporan
-function generatePDFfromData(laporan) {
-  // Kita buatkan elemen div tersembunyi yang lengkap laporan dengan kelas cetak, kemudian convert
-  let div = document.createElement('div');
-  div.style.position = 'fixed';
-  div.style.top = '-9999px';
-  div.className = 'opr-laporan-print';
-  div.innerHTML = buatHTMLLaporan(laporan);
-  document.body.appendChild(div);
-
-  // html2pdf.js options
-  const opt = {
-    margin: [10, 10, 15, 10], // mm top,right,bottom,left
-    filename: `Laporan_OPR_${laporan.namaProgram.replace(/[^a-z0-9]/gi, '_')}_${laporan.id}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  };
-
-  // Pastikan library html2pdf sudah dimuatkan sebelum panggil ini!
-  html2pdf().set(opt).from(div).save().then(() => {
-    document.body.removeChild(div);
-  });
-}
-
-// =============== Modal Preview Laporan Cetak =================
-function bukaPreviewModal(laporan, untukCetak = false) {
-  // Jika modal sudah ada, buang dulu
-  const existing = document.getElementById('previewModalOPR');
-  if (existing) existing.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'previewModalOPR';
-  modal.style =
-    'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000a;display:flex;justify-content:center;align-items:center;z-index:10000;overflow:auto;padding:20px;';
-
-  // Container laporan
-  const kontena = document.createElement('div');
-  kontena.style =
-    'background:#fff;padding:24px;border-radius:12px;max-width:800px;min-width:320px;box-shadow:0 4px 16px rgba(0,0,0,0.25);position:relative;';
-
-  kontena.innerHTML = buatHTMLLaporan(laporan);
-
-  // Butang tutup
-  const btnTutup = document.createElement('button');
-  btnTutup.textContent = '✖ Tutup';
-  btnTutup.style =
-    'position:absolute;top:12px;right:12px;background:#ea4335;color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:1rem;';
-  btnTutup.onclick = () => modal.remove();
-
-  kontena.appendChild(btnTutup);
-  modal.appendChild(kontena);
-  document.body.appendChild(modal);
-
-  if (untukCetak) {
-    setTimeout(() => {
-      window.print();
-    }, 500);
-  }
-}
-
-// Buat HTML lengkap laporan untuk preview & cetak
-function buatHTMLLaporan(d) {
-  // Sembunyikan field kosong dengan data-kosong="true"
-  const cekKosong = text => (!text || text.trim() === '' ? 'data-kosong="true"' : '');
-
-  // Gambar bukti
-  let gambarHTML = '';
-  if (Array.isArray(d.gambar) && d.gambar.length > 0) {
-    gambarHTML = `<div class="opr-gambar-preview">` + d.gambar
-      .map(
-        src => `<img src="${src}" alt="Gambar Bukti Laporan" />`
-      )
-      .join('') + `</div>`;
-  }
-
-  // Tarikh hari ini untuk cop bulat
-  const now = new Date();
-  const tarikhStr = now.toLocaleDateString('ms-MY', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-
-  return `
-    <div class="opr-laporan-print">
-
-      <div class="letterhead">
-        <img src="assets/logo_sekolah.png" alt="Logo Sekolah" class="logo" />
-        <div class="judul-sekolah">SEKOLAH KEBANGSAAN SOKOR</div>
-      </div>
-
-      <div class="opr-field" ${cekKosong(d.namaProgram)}>
-        <label>Nama Program/Aktiviti:</label> <div>${escapeHTML(d.namaProgram)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.tarikhMasa)}>
-        <label>Tarikh & Masa:</label> <div>${formatTarikh(d.tarikhMasa)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.tempat)}>
-        <label>Tempat:</label> <div>${escapeHTML(d.tempat)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.anjuran)}>
-        <label>Anjuran:</label> <div>${escapeHTML(d.anjuran)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.penaja)}>
-        <label>Penaja:</label> <div>${escapeHTML(d.penaja)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.sasaran)}>
-        <label>Sasaran:</label> <div>${escapeHTML(d.sasaran)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.objektif)}>
-        <label>Objektif:</label> <div>${escapeHTML(d.objektif)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.butiranAktiviti)}>
-        <label>Butiran Aktiviti:</label> <div>${escapeHTML(d.butiranAktiviti)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.pencapaian)}>
-        <label>Pencapaian:</label> <div>${escapeHTML(d.pencapaian)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.kekuatan)}>
-        <label>Kekuatan:</label> <div>${escapeHTML(d.kekuatan)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.kelemahan)}>
-        <label>Kelemahan:</label> <div>${escapeHTML(d.kelemahan)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.intervensi)}>
-        <label>Cadangan Intervensi:</label> <div>${escapeHTML(d.intervensi)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.impak)}>
-        <label>Impak Program:</label> <div>${escapeHTML(d.impak)}</div>
-      </div>
-      <div class="opr-field" ${cekKosong(d.kos)}>
-        <label>Kos / Peralatan / Bahan:</label> <div>${escapeHTML(d.kos)}</div>
-      </div>
-
-      ${gambarHTML}
-
-      <div class="tandatangan-cop">
-        <div>
-          <div class="ruang-tandatangan"></div>
-          <div class="ruang-label">Nama Pelapor: ${escapeHTML(d.penyedia)}</div>
-        </div>
-        <div>
-          <div class="ruang-tandatangan"></div>
-          <div class="ruang-label">Nama Penyemak: ${escapeHTML(d.penyemak)}</div>
-        </div>
-        <div>
-          <div class="ruang-tandatangan"></div>
-          <div class="ruang-label">Nama Pengesah: ${escapeHTML(d.pengesah)}</div>
-        </div>
-      </div>
-
-      <div class="tandatangan-cop" style="justify-content:center; margin-top: 10px;">
-        <div class="cop-bulat">
-          <img src="assets/cop_bulat.png" alt="Cop Bulat Sekolah" />
-          <div class="tarikh">${tarikhStr}</div>
-        </div>
-      </div>
-
-      <div style="margin-top: 30px; font-size: 0.85rem; text-align: center; color: #666;">
-        Hakcipta GB Mie &copy; 2025. Dikod dengan penuh kasih sayang dan hormat kepada cikgu-cikgu SK Sokor.
-      </div>
-    </div>
-  `;
-}
-
-// ==================== Auto Eksport JSON (Backup) ====================
-function autoEksportJSON() {
+// ======= Download Semua Data JSON =======
+downloadBtn.addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(dataOPR, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -671,41 +397,239 @@ function autoEksportJSON() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, 100);
-}
-downloadBtn.addEventListener('click', autoEksportJSON);
+});
 
-importBtn.addEventListener('click', () => {
-  importFile.click();
+// ======= Cetak Preview =======
+cetakBtn.addEventListener('click', () => {
+  window.print();
 });
-importFile.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (evt) {
+
+// ======= Download Laporan Ini (PDF) =======
+// Memerlukan jsPDF - sediakan script link CDN dalam index.html
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+downloadPdfBtn.addEventListener('click', () => {
+  if (dataOPR.length === 0) {
+    alert('Tiada laporan untuk dijana PDF.');
+    return;
+  }
+  const data = dataOPR[0]; // Ambil laporan terbaru untuk contoh (boleh ubah ikut pilihan)
+  janaPDF(data);
+});
+
+// ======= Fungsi Jana PDF =======
+async function janaPDF(data) {
+  // muat library jsPDF
+  if (!window.jspdf) {
+    alert('Sila tambah pustaka jsPDF dalam index.html untuk fungsi PDF.');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({
+    unit: 'pt',
+    format: 'a4',
+    compress: true
+  });
+
+  const margin = 40;
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // Fungsi tambah teks
+  function tambahTeks(text, x, y, options = {}) {
+    pdf.setFontSize(options.size || 12);
+    pdf.setFont('helvetica', options.style || 'normal');
+    pdf.text(text, x, y, { maxWidth: pageWidth - margin * 2 });
+  }
+
+  // Tambah letterhead & logo sekolah jika ada
+  if (dataSekolahGuru.logoSekolahBase64) {
     try {
-      const dataBaru = JSON.parse(evt.target.result);
-      if (Array.isArray(dataBaru)) {
-        const idSet = new Set(dataOPR.map(x => x.id));
-        let countBaru = 0;
-        dataBaru.forEach(item => {
-          if (!idSet.has(item.id)) {
-            dataOPR.push(item);
-            countBaru++;
-          }
-        });
-        simpanDataLocal();
-        paparkanSenaraiOPR();
-        alert(
-          'Data berjaya digabung!\nLaporan baru dimasukkan: ' +
-            countBaru +
-            '\nJumlah laporan terkini: ' +
-            dataOPR.length
-        );
-      } else throw new Error();
-    } catch {
-      alert('Fail tidak sah. Pilih fail eksport OPR (.json) sahaja.');
+      pdf.addImage(dataSekolahGuru.logoSekolahBase64, 'PNG', margin, margin, 80, 80);
+    } catch { /* Ignore error if invalid image */ }
+  }
+  if (dataSekolahGuru.namaSekolah) {
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(dataSekolahGuru.namaSekolah, margin + 90, margin + 40);
+  }
+
+  let y = margin + 100;
+
+  // Info Laporan
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Laporan Program / Aktiviti', margin, y);
+  y += 20;
+
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+
+  const isi = [
+    ['Nama Program/Aktiviti', data.namaProgram],
+    ['Tarikh & Masa', formatTarikh(data.tarikhMasa)],
+    ['Tempat', data.tempat],
+    ['Anjuran', data.anjuran],
+    ['Penaja', data.penaja],
+    ['Sasaran', data.sasaran],
+    ['Objektif', data.objektif],
+    ['Butiran Aktiviti', data.butiranAktiviti],
+    ['Pencapaian', data.pencapaian],
+    ['Kekuatan', data.kekuatan],
+    ['Kelemahan', data.kelemahan],
+    ['Cadangan Intervensi', data.intervensi],
+    ['Impak Program', data.impak],
+    ['Kos/Peralatan', data.kos],
+  ];
+
+  isi.forEach(([label, value]) => {
+    if (value && value.trim() !== '') {
+      tambahTeks(`${label}:`, margin, y, { style: 'bold' });
+      y += 16;
+      tambahTeks(value, margin + 20, y);
+      y += 20;
     }
-  };
-  reader.readAsText(file);
-  importFile.value = '';
+  });
+
+  // Gambar bukti (hanya satu untuk ringkasan)
+  if (data.gambar && data.gambar.length > 0) {
+    try {
+      const imgProps = pdf.getImageProperties(data.gambar[0]);
+      const imgWidth = 150;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      if (y + imgHeight > pageHeight - margin - 100) {
+        pdf.addPage();
+        y = margin;
+      }
+      pdf.text('Gambar Bukti:', margin, y);
+      y += 10;
+      pdf.addImage(data.gambar[0], 'PNG', margin, y, imgWidth, imgHeight);
+      y += imgHeight + 20;
+    } catch {
+      // ignore error
+    }
+  }
+
+  // Ruang Tandatangan & Cop Bulat Sekolah
+  const tandatanganY = pageHeight - margin - 150;
+  pdf.setLineWidth(0.5);
+  pdf.line(margin, tandatanganY, margin + 160, tandatanganY); // Garis tanda tangan pelapor
+  pdf.text('Nama Pelapor:', margin, tandatanganY + 15);
+  pdf.text(data.penyedia || dataSekolahGuru.guruPelapor || '-', margin, tandatanganY + 35);
+
+  pdf.line(margin + 200, tandatanganY, margin + 360, tandatanganY); // Garis tanda tangan penyemak
+  pdf.text('Nama Penyemak:', margin + 200, tandatanganY + 15);
+  pdf.text(data.penyemak || dataSekolahGuru.guruPenyemak || '-', margin + 200, tandatanganY + 35);
+
+  pdf.line(margin + 400, tandatanganY, margin + 560, tandatanganY); // Garis tanda tangan pengesah
+  pdf.text('Nama Pengesah:', margin + 400, tandatanganY + 15);
+  pdf.text(data.pengesah || dataSekolahGuru.guruPengesah || '-', margin + 400, tandatanganY + 35);
+
+  // Cop bulat sekolah (kotak tempat)
+  pdf.rect(margin + 400, tandatanganY + 50, 120, 80);
+  pdf.text('Cop Bulat Sekolah', margin + 415, tandatanganY + 90);
+
+  // Tarikh hari ini di bawah cop
+  const tarikhHariIni = new Date().toLocaleDateString('ms-MY');
+  pdf.text(`Tarikh: ${tarikhHariIni}`, margin + 405, tandatanganY + 140);
+
+  // Simpan fail PDF
+  pdf.save(`Laporan_OPR_${data.id}.pdf`);
+}
+
+// ======= Event Modal Maklumat Sekolah & Guru =======
+bukaModalSekolahBtn.addEventListener('click', () => {
+  isiFormSekolahGuru();
+  modalSekolah.style.display = 'flex';
 });
+tutupModalSekolahBtn.addEventListener('click', () => {
+  modalSekolah.style.display = 'none';
+});
+resetModalSekolahBtn.addEventListener('click', () => {
+  if (confirm('Padam semua maklumat sekolah & guru? Tindakan ini tidak boleh dibatalkan.')) {
+    dataSekolahGuru = {
+      namaSekolah: '',
+      alamatSekolah: '',
+      logoSekolahBase64: '',
+      guruPelapor: '',
+      guruPenyemak: '',
+      guruPengesah: ''
+    };
+    simpanDataSekolahGuru();
+    isiFormSekolahGuru();
+  }
+});
+
+// ======= Simpan Maklumat Sekolah & Guru dari Modal =======
+formSekolahGuru.addEventListener('submit', e => {
+  e.preventDefault();
+  dataSekolahGuru.namaSekolah = namaSekolahInput.value.trim();
+  dataSekolahGuru.alamatSekolah = alamatSekolahInput.value.trim();
+  dataSekolahGuru.guruPelapor = guruPelaporInput.value.trim();
+  dataSekolahGuru.guruPenyemak = guruPenyemakInput.value.trim();
+  dataSekolahGuru.guruPengesah = guruPengesahInput.value.trim();
+  simpanDataSekolahGuru();
+  alert('Maklumat sekolah & guru berjaya disimpan!');
+  modalSekolah.style.display = 'none';
+
+  // Auto isi nama pelapor, penyemak, pengesah dalam borang laporan
+  el('penyedia').value = dataSekolahGuru.guruPelapor;
+  el('penyemak').value = dataSekolahGuru.guruPenyemak;
+  el('pengesah').value = dataSekolahGuru.guruPengesah;
+});
+
+// ======= Preview Logo Sekolah Dalam Modal =======
+logoSekolahInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) {
+    logoPreview.innerHTML = '';
+    dataSekolahGuru.logoSekolahBase64 = '';
+    simpanDataSekolahGuru();
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    alert('Sila pilih fail imej PNG atau JPEG sahaja.');
+    logoSekolahInput.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = evt => {
+    dataSekolahGuru.logoSekolahBase64 = evt.target.result;
+    logoPreview.innerHTML = `<img src="${dataSekolahGuru.logoSekolahBase64}" alt="Logo Sekolah" style="max-width:120px; max-height:120px; border-radius:12px;">`;
+    simpanDataSekolahGuru();
+  };
+  reader.readAsDataURL(file);
+});
+
+// ======= Dark Mode Toggle =======
+darkModeBtn.addEventListener('click', () => {
+  const isDark = document.body.classList.toggle('dark');
+  darkModeBtn.classList.toggle('active', isDark);
+  localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+});
+
+// ======= Init =======
+window.addEventListener('DOMContentLoaded', () => {
+  loadDataOPR();
+  loadDataSekolahGuru();
+
+  paparkanSenaraiOPR();
+  isiFormSekolahGuru();
+  periksaKamera();
+
+  // Auto isi nama pelapor, penyemak, pengesah dalam borang laporan
+  el('penyedia').value = dataSekolahGuru.guruPelapor || '';
+  el('penyemak').value = dataSekolahGuru.guruPenyemak || '';
+  el('pengesah').value = dataSekolahGuru.guruPengesah || '';
+
+  // Dark mode restore
+  if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark');
+    darkModeBtn.classList.add('active');
+  }
+});
+
+// ======= Events untuk Carian & Filter =======
+carianInput.addEventListener('input', paparkanSenaraiOPR);
+filterBulan.addEventListener('change', paparkanSenaraiOPR);
+filterGuru.addEventListener('change', paparkanSenaraiOPR);
+
