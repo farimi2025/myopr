@@ -265,10 +265,12 @@ padamGambarBtn.addEventListener("click", () => {
 
 // =============== SIMPAN, MUAT & PAPAR DATA OPR ===============
 
+// Simpan data laporan ke localStorage
 function simpanDataLocal() {
   localStorage.setItem("dataOPR", JSON.stringify(dataOPR));
 }
 
+// Muat data laporan dari localStorage
 function muatDataLocal() {
   try {
     const data = JSON.parse(localStorage.getItem("dataOPR"));
