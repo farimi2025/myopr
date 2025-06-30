@@ -1,170 +1,182 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>myOPR Sekolah – Laporan 1 Halaman</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OPR Sekolah – Laporan Satu Muka (One Page)</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
 </head>
 <body>
-<div class="app-container">
+  <div id="app" class="app-container">
 
-  <!-- Header -->
-  <header>
-    <img src="logo-sekolah.png" alt="Logo Sekolah" class="logo-sekolah">
-    <div>
-      <h1 class="judul-opr">myOPR SEKOLAH</h1>
-      <div class="sub-opr" id="namaSekolahLabel"></div>
-      <div class="alamat-opr" id="alamatSekolahLabel"></div>
-    </div>
-  </header>
+    <header>
+      <h1>Laporan Sekolah Satu Muka (OPR)</h1>
+      <p class="sokongan">
+        Aplikasi untuk semua guru, PK dan Guru Besar – isi laporan, ambil gambar,
+        cetak & simpan PDF. Boleh digunakan walaupun offline.
+      </p>
+      <button id="darkModeBtn" aria-label="Tukar ke Dark Mode">🌙 Paparan Gelap</button>
+    </header>
 
-  <!-- Maklumat sekolah & guru -->
-  <form id="infoSekolahForm" class="blok">
-    <h2>Maklumat Sekolah & Guru</h2>
-    <label>Nama Sekolah: 
-      <input type="text" id="namaSekolah" maxlength="60" required placeholder="Contoh: SK Tanah Merah">
-      <span class="baki-aksara" id="baki_namaSekolah"></span>
-    </label>
-    <label>Alamat Sekolah: 
-      <input type="text" id="alamatSekolah" maxlength="120" required placeholder="Alamat penuh sekolah">
-      <span class="baki-aksara" id="baki_alamatSekolah"></span>
-    </label>
-    <label>Nama Guru (Pelapor): 
-      <input type="text" id="namaGuru" maxlength="40" required placeholder="Nama penuh guru">
-      <span class="baki-aksara" id="baki_namaGuru"></span>
-    </label>
-    <button type="submit" class="btn-utama">Simpan Maklumat</button>
-  </form>
+    <!-- Borang Maklumat Sekolah & Guru -->
+    <section id="dataSekolah" class="kad-borang">
+      <h2>Maklumat Sekolah & Guru</h2>
+      <form id="formSekolah" autocomplete="off">
+        <label>
+          Nama Sekolah:
+          <input type="text" id="namaSekolah" required placeholder="Contoh: SK Sokor" />
+        </label>
+        <label>
+          Alamat Sekolah:
+          <textarea id="alamatSekolah" rows="2" placeholder="Alamat penuh sekolah"></textarea>
+        </label>
+        <label>
+          Logo Sekolah (PNG/JPG):
+          <input type="file" id="logoSekolah" accept="image/png, image/jpeg" />
+        </label>
+        <div id="previewLogo"></div>
+        <label>
+          Nama Guru Pelapor:
+          <input type="text" id="guruPelapor" required placeholder="Nama penuh guru pelapor" />
+        </label>
+        <label>
+          Nama Guru Pengesah:
+          <input type="text" id="guruPengesah" placeholder="Nama penuh guru pengesah (PK/GB)" />
+        </label>
+        <button type="submit" class="btn-utama">Simpan Maklumat Sekolah & Guru</button>
+      </form>
+    </section>
 
-  <!-- Borang laporan -->
-  <form id="oprForm" autocomplete="off" class="blok" style="display:none;">
-    <h2>Borang Laporan Aktiviti</h2>
-    <label>Nama Program/Aktiviti:
-      <input type="text" id="namaProgram" maxlength="50" required placeholder="Contoh: Mesyuarat Panitia">
-      <span class="baki-aksara" id="baki_namaProgram"></span>
-    </label>
-    <div class="grid-2col">
-      <label>Tarikh & Masa:
-        <input type="datetime-local" id="tarikhMasa" required>
-      </label>
-      <label>Tempat:
-        <input type="text" id="tempat" maxlength="40" required placeholder="Contoh: Bilik Mesyuarat">
-        <span class="baki-aksara" id="baki_tempat"></span>
-      </label>
-    </div>
-    <label>Objektif:
-      <textarea id="objektif" rows="2" maxlength="250" required placeholder="Tujuan utama aktiviti ini"></textarea>
-      <span class="baki-aksara" id="baki_objektif"></span>
-    </label>
-    <label>Butiran Aktiviti:
-      <textarea id="butiranAktiviti" rows="3" maxlength="350" required placeholder="Perincian aktiviti yang dijalankan"></textarea>
-      <span class="baki-aksara" id="baki_butiranAktiviti"></span>
-      <div class="tooltip">
-        <button type="button" id="rekodSuaraBtn" class="icon-btn">🎤 Rakam Suara</button>
-        <span class="tooltiptext">Klik untuk rakam suara (akan ditukar ke teks)</span>
+    <!-- Borang Laporan OPR -->
+    <section id="borangOPR" class="kad-borang">
+      <h2>Borang Laporan / Mesyuarat / Aktiviti Sekolah</h2>
+      <form id="oprForm" autocomplete="off">
+        <label>
+          Nama Program/Aktiviti:
+          <input type="text" id="namaProgram" required placeholder="Contoh: Mesyuarat Guru, Sukan Tahunan" />
+        </label>
+        <label>
+          Tarikh & Masa:
+          <input type="datetime-local" id="tarikhMasa" required />
+        </label>
+        <label>
+          Tempat:
+          <input type="text" id="tempat" required placeholder="Contoh: Dewan Terbuka" />
+        </label>
+        <label>
+          Anjuran:
+          <input type="text" id="anjuran" placeholder="Contoh: Sekolah, PPD, JPN, KPM, Persatuan" />
+        </label>
+        <label>
+          Penaja:
+          <input type="text" id="penaja" placeholder="Contoh: PIBG, Bank Rakyat, YB Parlimen" />
+        </label>
+        <label>
+          Sasaran:
+          <input type="text" id="sasaran" placeholder="Contoh: Semua Guru, Semua Murid Tahun 6" />
+        </label>
+        <label>
+          Objektif:
+          <textarea id="objektif" rows="2" placeholder="Nyatakan objektif program/mesyuarat..."></textarea>
+        </label>
+        <label>
+          Butiran Aktiviti:
+          <textarea id="butiranAktiviti" rows="3" placeholder="Ulasan/aturcara utama..."></textarea>
+        </label>
+        <label>
+          Pencapaian:
+          <textarea id="pencapaian" rows="2"></textarea>
+        </label>
+        <label>
+          Kekuatan:
+          <textarea id="kekuatan" rows="2"></textarea>
+        </label>
+        <label>
+          Kelemahan:
+          <textarea id="kelemahan" rows="2"></textarea>
+        </label>
+        <label>
+          Cadangan Intervensi:
+          <textarea id="intervensi" rows="2"></textarea>
+        </label>
+        <label>
+          Impak Program:
+          <textarea id="impak" rows="2"></textarea>
+        </label>
+        <label>
+          Kos, Peralatan/Bahan:
+          <textarea id="kos" rows="1" placeholder="Contoh: RM300, P.A System, Kertas"></textarea>
+        </label>
+        <label>
+          Nama Penyedia:
+          <input type="text" id="penyedia" required placeholder="Nama Guru" />
+        </label>
+        <label>
+          Nama Penyemak:
+          <input type="text" id="penyemak" placeholder="Nama Penolong Kanan / Guru Besar" />
+        </label>
+        <label>
+          Nama Pengesah:
+          <input type="text" id="pengesah" placeholder="Nama Pengetua/Guru Besar" />
+        </label>
+
+        <!-- Gambar Bukti -->
+        <label>
+          Gambar Bukti (max 4):
+          <div class="grup-gambar">
+            <button type="button" id="ambilGambarBtn">📷 Ambil Gambar</button>
+            <button type="button" id="uploadGambarBtn">🖼️ Upload Gambar</button>
+            <input
+              type="file"
+              id="gambarBukti"
+              accept="image/*"
+              capture="environment"
+              multiple
+              style="display:none"
+            />
+            <button type="button" id="padamGambarBtn" style="display:none">❌ Padam Gambar</button>
+          </div>
+          <span id="statusKamera" style="color:#c11;font-size:0.9em;"></span>
+        </label>
+        <div class="gambar-preview" id="gambarPreview"></div>
+
+      </form>
+      <div class="butang-grup" style="margin-top:15px;">
+        <button id="simpanBtn" type="button" class="btn-utama">Simpan Laporan</button>
+        <button id="downloadBtn" type="button">Download Data</button>
+        <button id="cetakBtn" type="button">Cetak / Simpan PDF</button>
       </div>
-      <div id="suaraStatus" class="status-text"></div>
-    </label>
-    <label>Impak/Pencapaian:
-      <textarea id="impak" rows="2" maxlength="200" placeholder="Hasil/kesan aktiviti"></textarea>
-      <span class="baki-aksara" id="baki_impak"></span>
-    </label>
-    <label>Cadangan Intervensi:
-      <textarea id="intervensi" rows="2" maxlength="160" placeholder="Cadangan penambahbaikan"></textarea>
-      <span class="baki-aksara" id="baki_intervensi"></span>
-    </label>
-    <fieldset class="gambar-section">
-      <legend>Gambar Bukti (min 1, maks 3)</legend>
-      <div class="gambar-buttons">
-        <button type="button" id="ambilGambarBtn" class="icon-btn">📷 Ambil Gambar</button>
-        <button type="button" id="uploadGambarBtn" class="icon-btn">🖼️ Upload Gambar</button>
-      </div>
-      <input type="file" id="gambarBukti" accept="image/*" multiple style="display:none;">
-      <div id="gambarPreview" class="gambar-preview"></div>
-      <div class="gambar-info" id="gambarCount">0/3 gambar</div>
-    </fieldset>
-    <div class="grid-2col">
-      <label>Guru Pelapor:
-        <input type="text" id="guruPelapor" maxlength="40" required>
-        <span class="baki-aksara" id="baki_guruPelapor"></span>
-      </label>
-      <label>Pentadbir:
-        <input type="text" id="pentadbir" maxlength="40" placeholder="PK/Guru Besar">
-        <span class="baki-aksara" id="baki_pentadbir"></span>
-      </label>
-    </div>
-    <div class="form-actions">
-      <button type="submit" class="btn-utama">💾 Simpan Laporan</button>
-      <button type="reset" class="btn-secondary">✖️ Set Semula</button>
-    </div>
-  </form>
+    </section>
 
-<!-- ...header, borang & lain-lain... -->
-
-<!-- Senarai laporan -->
-<section id="senaraiLaporan" class="kad-senarai" style="display:none;">
-  <div class="section-header">
-    <h2>Senarai Laporan</h2>
-    <div class="guru-info">Guru: <span id="labelGuruAktif"></span></div>
-  </div>
-  <div class="action-buttons">
-    <button id="tukarGuruBtn" class="action-btn">🔄 Tukar Guru</button>
-    <div class="btn-group">
-      <button id="importBtn" class="action-btn">⬆️ Import</button>
-      <input type="file" id="importFile" accept=".json" style="display:none;">
-    </div>
-    <button id="exportBtn" class="action-btn">⬇️ Eksport</button>
-    <button id="downloadAllPDFBtn" class="action-btn">📥 MuatTurun Semua Laporan</button>
-    <button id="githubBtn" class="action-btn">☁️ Sync GitHub</button>
-    <button id="cariBtn" class="action-btn">🔍 Cari</button>
-  </div>
-  <div id="searchBox" class="search-box" style="display:none;">
-    <input type="text" id="cariInput" placeholder="Cari laporan...">
-    <button id="tutupCariBtn">✖</button>
-  </div>
-  <div id="listOPR" class="laporan-list"></div>
-</section>
-
-<!-- Modal Preview Laporan (Hanya Satu Set Butang) -->
-<div id="modalPreview" class="modal-preview" style="display:none;">
-  <div class="modal-content" id="modalPreviewContent"></div>
-  <div class="modal-btn" id="modalPreviewActions" style="text-align:center;margin-top:15px;">
-    <button id="btnCetakPDF" class="print-btn">🖨️ Cetak PDF</button>
-    <button id="editLaporanBtn" class="edit-btn" style="background:#ff9800;">✏️ Edit</button>
-    <button id="padamLaporanBtn" class="delete-btn" style="background:#e53935;">🗑️ Padam</button>
-    <button id="tutupPreviewBtn2" class="close-btn">✖ Tutup</button>
-  </div>
-</div>
-<!-- Modal gambar besar dan lain-lain kekal... -->
-
-
-
-  <!-- Modal Preview Laporan Satu Halaman -->
- <div id="modalPreview" class="modal-preview" style="display:none;">
-  <div class="modal-content" id="modalPreviewContent"></div>
-  <div class="modal-btn" id="modalPreviewActions" style="text-align:center;margin-top:15px;">
-    <button id="btnCetakPDF" class="print-btn">🖨️ Cetak PDF</button>
-    <button id="editLaporanBtn" class="edit-btn" style="background:#ff9800;">✏️ Edit</button>
-    <button id="padamLaporanBtn" class="delete-btn" style="background:#e53935;">🗑️ Padam</button>
-    <button id="tutupPreviewBtn2" class="close-btn">✖ Tutup</button>
-  </div>
-</div>
-
-
-  <!-- Modal gambar besar -->
-  <div id="modalMedia" class="modal-preview" style="display:none;">
-    <div id="mediaContent" class="modal-content"></div>
-    <div class="modal-btn">
-      <button id="tutupMediaBtn">Tutup</button>
-    </div>
+    <!-- Senarai & Carian -->
+    <section id="senaraiLaporan" class="kad-senarai">
+      <h2>Senarai Laporan</h2>
+      <input type="search" id="carianInput" placeholder="Cari laporan / program / tempat..." />
+      <div id="listOPR"></div>
+    </section>
   </div>
 
   <footer>
-    <p>OPR Sekolah v2.0 © 2025 - <a href="Manual Pengguna Ringkas MyOPR.md" id="bantuanLink">Bantuan</a></p>
+    <p>Hak cipta &copy; 2025 | Aplikasi OPR Sekolah Mesra Guru | Versi 1.2</p>
+    <p>
+      <a href="https://github.com/cikgu-opr/opr-sekolah" target="_blank"
+        >Kod Sumber (GitHub)</a
+      >
+    </p>
   </footer>
-</div>
-<script src="app.js"></script>
+
+  <script src="indexeddb-helper.js"></script>
+  <script src="pdf-generator.js"></script>
+  <script src="docx-generator.js"></script>
+  <script src="email-share.js"></script>
+  <script src="sync-github.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
 </body>
 </html>
