@@ -7,12 +7,6 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="icon-192.png" type="image/png" />
-<!-- CDN jsPDF untuk generate PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<!-- CDN docx.js untuk generate DOCX -->
-<script src="https://cdn.jsdelivr.net/npm/docx@7.1.2/build/index.min.js"></script>
-
 </head>
 <body>
   <div id="app" class="app-container">
@@ -23,11 +17,14 @@
         Aplikasi untuk semua guru, PK dan Guru Besar – isi laporan, ambil gambar,
         cetak & simpan PDF. Boleh digunakan walaupun offline.
       </p>
-      <button id="darkModeBtn" aria-label="Tukar ke Dark Mode">🌙 Paparan Gelap</button>
     </header>
 
+    <button id="editDataSekolahBtn" style="display:none; margin-bottom:16px;">
+      ✏️ Edit Maklumat Sekolah & Guru
+    </button>
+
     <!-- Borang Maklumat Sekolah & Guru -->
-    <section id="dataSekolah" class="kad-borang">
+    <section id="dataSekolah" class="kad-borang" style="display:none;">
       <h2>Maklumat Sekolah & Guru</h2>
       <form id="formSekolah" autocomplete="off">
         <label>
@@ -173,7 +170,7 @@
     </p>
   </footer>
 
-  <!-- Load libraries dari CDN -->
+  <!-- Load CDN jsPDF dan docx.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docx@7.1.2/build/index.min.js"></script>
 
@@ -185,10 +182,9 @@
   <script src="sync-github.js"></script>
   <script src="app.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
     }
   </script>
 </body>
 </html>
-
