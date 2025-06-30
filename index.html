@@ -110,6 +110,8 @@
         <button id="downloadBtn" type="button">Download Semua Data (JSON)</button>
         <button id="cetakBtn" type="button">Cetak Preview</button>
         <button id="downloadPdfBtn" type="button">Download Laporan Ini (PDF)</button>
+        <button id="downloadDocxBtn" type="button">Download Laporan Ini (DOCX)</button>
+        <button id="syncGithubBtn" type="button">Sync Data GitHub</button>
       </div>
     </section>
 
@@ -186,10 +188,10 @@
   <footer>
     <p>Hakcipta &copy; 2025 | Aplikasi OPR Sekolah Mesra Guru | Versi 1.2 | Dibina dengan kasih sayang untuk SK Sokor</p>
   </footer>
-<!-- Panggil CDN dan fail JS tambahan -->
-  <!-- ... semua kandungan HTML di atas ... -->
 
+  <!-- CDN & Fail JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.4.0/docx.umd.min.js"></script>
   <script src="pdf-generator.js"></script>
   <script src="docx-generator.js"></script>
   <script src="sync-github.js"></script>
@@ -197,7 +199,6 @@
   <script src="app.js"></script>
 
   <script>
-    // Daftar service worker untuk offline
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').then(() => {
         console.log('Service Worker didaftarkan.');
@@ -208,4 +209,3 @@
   </script>
 </body>
 </html>
-
