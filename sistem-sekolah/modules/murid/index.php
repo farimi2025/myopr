@@ -91,6 +91,9 @@ include __DIR__ . '/../../includes/header.php';
            class="btn btn-outline-success btn-sm" target="_blank">
             <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
         </a>
+        <a href="<?= BASE_URL ?>/modules/murid/import.php" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-upload me-1"></i>Import CSV
+        </a>
         <a href="<?= BASE_URL ?>/modules/murid/tambah.php" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-circle me-1"></i>Tambah Murid
         </a>
