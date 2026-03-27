@@ -3,6 +3,14 @@
 // FUNGSI PEMBANTU UMUM
 // ============================================================
 
+// Semak sama ada mana-mana item dalam array mengandungi substring
+function in_array_str(string $needle, array $haystack): bool {
+    foreach ($haystack as $item) {
+        if (stripos((string)$item, $needle) !== false) return true;
+    }
+    return false;
+}
+
 // Sanitize input
 function clean(mixed $val): string {
     return htmlspecialchars(trim((string)$val), ENT_QUOTES, 'UTF-8');

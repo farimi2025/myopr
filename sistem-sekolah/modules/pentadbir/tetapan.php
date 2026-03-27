@@ -24,11 +24,11 @@ $settings = [
 
 // Helper to save a setting
 function saveSetting(string $key, string $value): void {
-    $existing = dbValue("SELECT id FROM tetapan WHERE kunci=?", [$key]);
+    $existing = dbValue("SELECT id FROM settings WHERE kunci=?", [$key]);
     if ($existing) {
-        dbUpdate('tetapan', ['nilai' => $value], 'kunci=?', [$key]);
+        dbUpdate('settings', ['nilai' => $value], 'kunci=?', [$key]);
     } else {
-        dbInsert('tetapan', ['kunci' => $key, 'nilai' => $value]);
+        dbInsert('settings', ['kunci' => $key, 'nilai' => $value]);
     }
 }
 

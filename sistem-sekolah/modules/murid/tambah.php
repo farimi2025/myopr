@@ -4,14 +4,6 @@ require_once __DIR__ . '/../../includes/functions.php';
 
 $pageTitle = 'Tambah Murid Baharu';
 
-// Helper: check if any error message contains keyword
-function in_array_str(string $needle, array $haystack): bool {
-    foreach ($haystack as $item) {
-        if (stripos($item, $needle) !== false) return true;
-    }
-    return false;
-}
-
 // ── POST handler ─────────────────────────────────────────────────────────────
 $errors = [];
 $input  = [];
