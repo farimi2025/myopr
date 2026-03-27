@@ -59,16 +59,15 @@ switch ($tindakan) {
         break;
 
     case 'reset_password':
-        // Jana kata laluan rawak 10 aksara
-        $chars    = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
-        $newPass  = '';
-        for ($i = 0; $i < 10; $i++) {
-            $newPass .= $chars[random_int(0, strlen($chars) - 1)];
-        }
-        $hashed = password_hash($newPass, PASSWORD_DEFAULT);
-        dbUpdate('users', ['password' => $hashed, 'token_reset' => null], 'id=?', [$id]);
-        logAktiviti('reset_password', 'users', $id, "Set semula kata laluan untuk: {$pengguna['username']}");
-        setFlash('info', "Kata laluan baharu untuk <strong>{$pengguna['nama']}</strong> ialah: <code class=\"user-select-all\">$newPass</code> — Sila maklumkan kepada pengguna dan minta ditukar segera.");
+        // Jana token reset 32 aksara dengan masa tamat 24 jam
+        $tokenReset = bin2hex(random_bytes(16));
+        dbQuery(
+            "UPDATE users SET token_reset=?, token_reset_tamat=DATE_ADD(NOW(), INTERVAL 24 HOUR) WHERE id=?",
+            [$tokenReset, $id]
+        );
+        $resetUrl = BASE_URL . '/reset_kata_laluan.php?token=' . $tokenReset;
+        logAktiviti('reset_password', 'users', $id, "Jana token reset kata laluan untuk: {$pengguna['username']}");
+        setFlash('info', "URL reset kata laluan untuk <strong>{$pengguna['nama']}</strong> ({$pengguna['username']}): <br><a href=\"{$resetUrl}\" class=\"user-select-all text-break\">{$resetUrl}</a><br><small class=\"text-muted\">Pautan ini sah selama 24 jam.</small>");
         break;
 }
 

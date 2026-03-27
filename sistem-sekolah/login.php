@@ -160,12 +160,16 @@ $namSekolah = dbValue("SELECT nilai FROM settings WHERE kunci='nama_sekolah'") ?
             <button type="submit" class="btn btn-login btn-primary w-100 text-white">
                 <i class="bi bi-box-arrow-in-right me-2"></i>Log Masuk
             </button>
+            <div class="text-center mt-3">
+                <a href="<?= BASE_URL ?>/lupa_kata_laluan.php" class="text-muted small">
+                    <i class="bi bi-question-circle me-1"></i>Lupa kata laluan?
+                </a>
+            </div>
         </form>
     </div>
     <div class="login-footer">
         <i class="bi bi-shield-lock me-1"></i>
         Sistem ini dilindungi kata laluan. Hanya pengguna yang diberi kebenaran sahaja boleh log masuk.
-        <br><span class="mt-1 d-block">Hubungi pentadbir jika anda terlupa kata laluan.</span>
     </div>
 </div>
 
