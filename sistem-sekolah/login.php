@@ -25,9 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$username || !$password) {
         $ralat = 'Sila masukkan username dan kata laluan.';
     } else {
-        require_once __DIR__ . '/includes/auth.php';
-        // Override requireLogin dalam auth.php (kita sedang di halaman login)
-        // Semak manual
         $user = dbFetch("SELECT * FROM users WHERE (username=? OR email=?) AND status='aktif' LIMIT 1",
             [$username, $username]);
         if (!$user || !password_verify($password, $user['password'])) {
