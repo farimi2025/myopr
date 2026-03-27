@@ -50,6 +50,10 @@ include __DIR__ . '/../../includes/header.php';
         </nav>
     </div>
     <div class="d-flex gap-2 no-print">
+        <a href="<?= BASE_URL ?>/export/kad_murid.php?murid_id=<?= $id ?>"
+           class="btn btn-outline-primary btn-sm" target="_blank" title="Cetak Kad Murid">
+            <i class="bi bi-person-badge me-1"></i>Cetak Kad
+        </a>
         <a href="<?= BASE_URL ?>/export/prestasi_pdf.php?murid_id=<?= $id ?>&tahun=<?= $murid['tahun'] ?? TAHUN_SEMASA ?>"
            class="btn btn-outline-danger btn-sm" target="_blank" title="Cetak Slip Markah">
             <i class="bi bi-file-pdf me-1"></i>Slip Markah

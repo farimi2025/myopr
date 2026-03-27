@@ -91,6 +91,10 @@ include __DIR__ . '/../../includes/header.php';
            class="btn btn-outline-success btn-sm" target="_blank">
             <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
         </a>
+        <a href="<?= BASE_URL ?>/export/kad_murid.php?<?= http_build_query(['kelas_id'=>$kelasId,'tahun'=>$tahunCari]) ?>"
+           class="btn btn-outline-primary btn-sm" target="_blank" title="Cetak Kad Murid">
+            <i class="bi bi-person-badge me-1"></i>Kad Murid
+        </a>
         <a href="<?= BASE_URL ?>/modules/murid/import.php" class="btn btn-outline-info btn-sm">
             <i class="bi bi-upload me-1"></i>Import CSV
         </a>
