@@ -98,6 +98,11 @@ function isCollapseShow(array $paths): string {
                     One Page Report (OPR)
                 </a>
 
+                <a class="nav-link <?= isMenuActive('/prestasi/laporan') ?>" href="<?= BASE_URL ?>/modules/prestasi/laporan.php">
+                    <div class="sb-nav-link-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+                    Laporan Prestasi
+                </a>
+
                 <!-- BAHAGIAN ADMIN SISTEM -->
                 <?php if (hasRole(['super_admin','pentadbir'])): ?>
                 <div class="sb-sidenav-menu-heading">Sistem</div>
