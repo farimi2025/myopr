@@ -101,6 +101,10 @@ function isCollapseShow(array $paths): string {
                 <!-- BAHAGIAN ADMIN SISTEM -->
                 <?php if (hasRole(['super_admin','pentadbir'])): ?>
                 <div class="sb-sidenav-menu-heading">Sistem</div>
+                <a class="nav-link <?= isMenuActive('/pengguna') ?>" href="<?= BASE_URL ?>/modules/pengguna/index.php">
+                    <div class="sb-nav-link-icon"><i class="bi bi-people-fill"></i></div>
+                    Pengguna Sistem
+                </a>
                 <a class="nav-link <?= isMenuActive('/pentadbir/tetapan') ?>" href="<?= BASE_URL ?>/modules/pentadbir/tetapan.php">
                     <div class="sb-nav-link-icon"><i class="bi bi-gear-fill"></i></div>
                     Tetapan Sistem

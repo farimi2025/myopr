@@ -346,9 +346,11 @@ include __DIR__ . '/../../includes/header.php';
 </form>
 
 <?php
-$idPengguna  = $id;
-$fotoUrlAsal = gambarUrl($pengguna['foto']);
-$extraScript = <<<ENDSCRIPT
+$jsId        = (int)$id;
+$jsFotoAsal  = gambarUrl($pengguna['foto']);
+$jsNoPhoto   = BASE_URL . '/assets/images/no-photo.png';
+$jsCekUnik   = BASE_URL . '/modules/pengguna/cek_unik.php';
+$extraScript = <<<JS
 <script>
 $(function(){
     // Photo preview
@@ -356,32 +358,32 @@ $(function(){
         const file = this.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = e => $('#previewFoto').attr('src', e.target.result);
+            reader.onload = e => \$('#previewFoto').attr('src', e.target.result);
             reader.readAsDataURL(file);
         }
     });
 
     // Padam foto toggle
-    $('#btnPadamFoto').on('click', function(){
-        const cb = $('#padamFoto');
+    \$('#btnPadamFoto').on('click', function(){
+        const cb = \$('#padamFoto');
         if (cb.is(':checked')) {
             cb.prop('checked', false);
-            $(this).removeClass('btn-success').addClass('btn-danger');
-            $(this).html('<i class="bi bi-x-circle-fill"></i>');
-            $('#previewFoto').attr('src', '$fotoUrlAsal');
+            \$(this).removeClass('btn-success').addClass('btn-danger');
+            \$(this).html('<i class="bi bi-x-circle-fill"></i>');
+            \$('#previewFoto').attr('src', '$jsFotoAsal');
         } else {
             cb.prop('checked', true);
-            $(this).removeClass('btn-danger').addClass('btn-success');
-            $(this).html('<i class="bi bi-check-circle-fill"></i> Akan Dipadam');
-            $('#previewFoto').attr('src', '<?= BASE_URL ?>/assets/images/no-photo.png');
+            \$(this).removeClass('btn-danger').addClass('btn-success');
+            \$(this).html('<i class="bi bi-check-circle-fill"></i> Akan Dipadam');
+            \$('#previewFoto').attr('src', '$jsNoPhoto');
         }
     });
 
     // Toggle show/hide password
-    $('.btn-toggle-pw').on('click', function(){
-        const target = $(this).data('target');
-        const input  = $('#' + target);
-        const icon   = $(this).find('i');
+    \$('.btn-toggle-pw').on('click', function(){
+        const target = \$(this).data('target');
+        const input  = \$('#' + target);
+        const icon   = \$(this).find('i');
         if (input.attr('type') === 'password') {
             input.attr('type', 'text');
             icon.removeClass('bi-eye').addClass('bi-eye-slash');
@@ -392,55 +394,55 @@ $(function(){
     });
 
     // Auto lowercase + no space for username
-    $('#username').on('input', function(){
+    \$('#username').on('input', function(){
         this.value = this.value.toLowerCase().replace(/\s/g, '');
     });
 
     // Username uniqueness check (exclude self)
-    $('#username').on('blur', function(){
-        const val = $(this).val().trim();
+    \$('#username').on('blur', function(){
+        const val = \$(this).val().trim();
         if (!val) return;
-        $.get('<?= BASE_URL ?>/modules/pengguna/cek_unik.php', { jenis: 'username', nilai: val, kecuali: <?= $idPengguna ?> }, function(data){
+        \$.get('$jsCekUnik', { jenis: 'username', nilai: val, kecuali: $jsId }, function(data){
             if (data.guna) {
-                $('#usernameStatus').html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Username telah digunakan.</span>');
-                $('#username').addClass('is-invalid').removeClass('is-valid');
+                \$('#usernameStatus').html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Username telah digunakan.</span>');
+                \$('#username').addClass('is-invalid').removeClass('is-valid');
             } else {
-                $('#usernameStatus').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Username tersedia.</span>');
-                $('#username').addClass('is-valid').removeClass('is-invalid');
+                \$('#usernameStatus').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Username tersedia.</span>');
+                \$('#username').addClass('is-valid').removeClass('is-invalid');
             }
         }, 'json');
     });
 
     // Email uniqueness check (exclude self)
-    $('#email').on('blur', function(){
-        const val = $(this).val().trim();
+    \$('#email').on('blur', function(){
+        const val = \$(this).val().trim();
         if (!val) return;
-        $.get('<?= BASE_URL ?>/modules/pengguna/cek_unik.php', { jenis: 'email', nilai: val, kecuali: <?= $idPengguna ?> }, function(data){
+        \$.get('$jsCekUnik', { jenis: 'email', nilai: val, kecuali: $jsId }, function(data){
             if (data.guna) {
-                $('#emailStatus').html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>E-mel telah digunakan.</span>');
-                $('#email').addClass('is-invalid').removeClass('is-valid');
+                \$('#emailStatus').html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>E-mel telah digunakan.</span>');
+                \$('#email').addClass('is-invalid').removeClass('is-valid');
             } else {
-                $('#emailStatus').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>E-mel tersedia.</span>');
-                $('#email').addClass('is-valid').removeClass('is-invalid');
+                \$('#emailStatus').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>E-mel tersedia.</span>');
+                \$('#email').addClass('is-valid').removeClass('is-invalid');
             }
         }, 'json');
     });
 
     // Password confirm match (only when new password is entered)
-    $('#password_confirm').on('input', function(){
-        const pw  = $('#password').val();
-        const pwc = $(this).val();
-        if (!pw || !pwc) { $('#passMatchStatus').text(''); return; }
+    \$('#password_confirm').on('input', function(){
+        const pw  = \$('#password').val();
+        const pwc = \$(this).val();
+        if (!pw || !pwc) { \$('#passMatchStatus').text(''); return; }
         if (pw === pwc) {
-            $('#passMatchStatus').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Kata laluan sepadan.</span>');
-            $(this).removeClass('is-invalid').addClass('is-valid');
+            \$('#passMatchStatus').html('<span class="text-success"><i class="bi bi-check-circle me-1"></i>Kata laluan sepadan.</span>');
+            \$(this).removeClass('is-invalid').addClass('is-valid');
         } else {
-            $('#passMatchStatus').html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Kata laluan tidak sepadan.</span>');
-            $(this).removeClass('is-valid').addClass('is-invalid');
+            \$('#passMatchStatus').html('<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Kata laluan tidak sepadan.</span>');
+            \$(this).removeClass('is-valid').addClass('is-invalid');
         }
     });
 });
 </script>
-ENDSCRIPT;
+JS;
 include __DIR__ . '/../../includes/footer.php';
 ?>
