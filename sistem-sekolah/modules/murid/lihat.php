@@ -50,6 +50,10 @@ include __DIR__ . '/../../includes/header.php';
         </nav>
     </div>
     <div class="d-flex gap-2 no-print">
+        <a href="<?= BASE_URL ?>/export/prestasi_pdf.php?murid_id=<?= $id ?>&tahun=<?= $murid['tahun'] ?? TAHUN_SEMASA ?>"
+           class="btn btn-outline-danger btn-sm" target="_blank" title="Cetak Slip Markah">
+            <i class="bi bi-file-pdf me-1"></i>Slip Markah
+        </a>
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-printer me-1"></i>Cetak
         </button>
