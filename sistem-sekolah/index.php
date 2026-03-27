@@ -60,6 +60,13 @@ $chartERPH = dbFetchAll("SELECT MONTH(tarikh) AS bulan, COUNT(*) AS jumlah
 $erphByBulan = array_fill(1, 12, 0);
 foreach ($chartERPH as $row) $erphByBulan[(int)$row['bulan']] = (int)$row['jumlah'];
 
+// Encode data carta untuk JavaScript
+$chartTingkatanLabels = json_encode(array_column($chartMuridTingkatan, 'tingkatan'));
+$chartTingkatanData   = json_encode(array_map('intval', array_column($chartMuridTingkatan, 'jumlah')));
+$chartGredLabels      = json_encode(array_column($chartGred, 'gred'));
+$chartGredData        = json_encode(array_map('intval', array_column($chartGred, 'jumlah')));
+$chartERPHData        = json_encode(array_values($erphByBulan));
+
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -345,46 +352,36 @@ include __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<?php
-// Prepare chart data
-$tingkatanLabel = array_column($chartMuridTingkatan, 'tingkatan');
-$tingkatanData  = array_column($chartMuridTingkatan, 'jumlah');
-$gredLabel = array_column($chartGred, 'gred');
-$gredData  = array_column($chartGred, 'jumlah');
-$bulanLabel = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
-$erphData   = array_values($erphByBulan);
-
 $extraScript = '<script>
-// Chart 1 - Murid mengikut Tingkatan
+// Graf 1 — Bar Chart: Murid Mengikut Tingkatan
 new Chart(document.getElementById("chartTingkatan"), {
     type: "bar",
     data: {
-        labels: ' . json_encode($tingkatanLabel) . ',
+        labels: ' . $chartTingkatanLabels . ',
         datasets: [{
             label: "Bilangan Murid",
-            data: ' . json_encode($tingkatanData) . ',
-            backgroundColor: ["#2563eb","#0891b2","#16a34a","#d97706","#7c3aed"],
-            borderRadius: 6,
+            data: ' . $chartTingkatanData . ',
+            backgroundColor: "rgba(37,99,235,0.7)",
+            borderColor: "#2563eb",
+            borderWidth: 1,
+            borderRadius: 6
         }]
     },
     options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
 });
 
-// Chart 2 - Gred
-const gredColors = {"A+":"#15803d","A":"#16a34a","A-":"#22c55e","B+":"#0284c7","B":"#0ea5e9","B-":"#38bdf8","C+":"#d97706","C":"#f59e0b","C-":"#fbbf24","D":"#ea580c","E":"#dc2626","G":"#7f1d1d"};
-const gredLabels = ' . json_encode($gredLabel) . ';
+// Graf 2 — Doughnut Chart: Taburan Gred Prestasi
 new Chart(document.getElementById("chartGred"), {
     type: "doughnut",
     data: {
-        labels: gredLabels,
+        labels: ' . $chartGredLabels . ',
         datasets: [{
-            data: ' . json_encode($gredData) . ',
-            backgroundColor: gredLabels.map(g => gredColors[g] || "#9ca3af"),
-            hoverOffset: 4,
+            data: ' . $chartGredData . ',
+            backgroundColor: ["#16a34a","#22c55e","#4ade80","#3b82f6","#60a5fa","#f59e0b","#fbbf24","#f97316","#ef4444","#6b7280"]
         }]
     },
     options: {
@@ -393,26 +390,25 @@ new Chart(document.getElementById("chartGred"), {
     }
 });
 
-// Chart 3 - ERPH Bulanan
+// Graf 3 — Line Chart: Aktiviti ERPH 12 Bulan
 new Chart(document.getElementById("chartERPH"), {
     type: "line",
     data: {
-        labels: ' . json_encode($bulanLabel) . ',
+        labels: ["Jan","Feb","Mac","Apr","Mei","Jun","Jul","Ogo","Sep","Okt","Nov","Dis"],
         datasets: [{
-            label: "ERPH",
-            data: ' . json_encode($erphData) . ',
-            borderColor: "#d97706",
-            backgroundColor: "rgba(217,119,6,.1)",
+            label: "Bil. ERPH",
+            data: ' . $chartERPHData . ',
+            borderColor: "#f59e0b",
+            backgroundColor: "rgba(245,158,11,0.1)",
             tension: 0.4,
             fill: true,
-            pointBackgroundColor: "#d97706",
-            pointRadius: 4,
+            pointBackgroundColor: "#f59e0b"
         }]
     },
     options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
 });
 </script>';
